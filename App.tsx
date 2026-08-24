@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { initDatabase } from './src/db/database';
+import { AppNavigator } from './src/navigation/AppNavigator';
 
 export default function App() {
   const [isDbReady, setIsDbReady] = useState(false);
@@ -23,18 +24,11 @@ export default function App() {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#6200ee" />
-        <Text style={{marginTop: 10}}>Inicijalizacija baze...</Text>
       </View>
     )
   }
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Fitness Tracker</Text>
-      <Text>Baza uspješno inicijalizovana...</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+  return <AppNavigator />;
 }
 
 const styles = StyleSheet.create({

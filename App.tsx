@@ -1,8 +1,9 @@
-import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { initDatabase } from './src/db/database';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import './src/services/i18n';
 
 export default function App() {
   const [isDbReady, setIsDbReady] = useState(false);
@@ -28,7 +29,11 @@ export default function App() {
     )
   }
 
-  return <AppNavigator />;
+  return (
+    <SafeAreaProvider>
+      <AppNavigator />
+    </SafeAreaProvider>
+  );
 }
 
 const styles = StyleSheet.create({

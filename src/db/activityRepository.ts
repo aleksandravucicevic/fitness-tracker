@@ -24,3 +24,8 @@ export const getAllActivities = async (): Promise<Activity[]> => {
     const rows = await db.getAllAsync<Activity>('SELECT * FROM activities ORDER BY date DESC;');
     return rows;
 };
+
+export const deleteActivity = async (id: number): Promise<void> => {
+    const db = await getDbConnection();
+    await db.runAsync('DELETE FROM activities WHERE id = ?;', [id]);
+}

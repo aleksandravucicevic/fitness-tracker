@@ -7,6 +7,7 @@ import { Colors } from '../utils/theme';
 
 import { HomeScreen } from '../screens/HomeScreen';
 import { TrackingScreen } from '../screens/TrackingScreen';
+import { ActivityDetailScreen } from '../screens/ActivityDetailScreen';
 import { HistoryScreen } from '../screens/HistoryScreen';
 import { StatsScreen } from '../screens/StatsScreen';
 import { GoalsScreen } from '../screens/GoalsScreen';
@@ -64,6 +65,13 @@ export const AppNavigator = () => {
                     options={{
                         headerShown: true,
                         title: 'Novi Trening',
+                        headerStyle: { backgroundColor: Colors.cardBackground },
+                        headerTintColor: Colors.textPrimary,
+                    }} />
+                    <Stack.Screen name="ActivityDetail" component={ActivityDetailScreen}
+                    options={{
+                        headerShown: true,
+                        title: 'Detalji Aktivnosti',
                         headerStyle: { backgroundColor: Colors.cardBackground },
                         headerTintColor: Colors.textPrimary,
                     }} />

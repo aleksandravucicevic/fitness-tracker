@@ -9,7 +9,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect,useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../utils/theme';
 import { getAllActivities, deleteActivity } from '../db/activityRepository';
@@ -20,6 +20,7 @@ export const HistoryScreen = () => {
   const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('ALL');
+  const navigation = useNavigation<any>();
 
   const loadActivities = async () => {
     try {
@@ -108,7 +109,7 @@ export const HistoryScreen = () => {
       ) : viewMode === 'list' ? (
         <FlatList data={filteredActivities} keyExtractor={(item) => item.id!.toString()}
           renderItem={({ item }) => (
-          <View style={styles.card}>
+          <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => navigation.navigate('ActivityDetail', { activity: item })}>
             <View style={styles.cardHeader}>
               <Text style={styles.activityType}>
                 {item.type === 'RUNNING' ? 'Trčanje' : item.type === 'WALKING' ? 'Hodanje' : 'Bicikl'}
@@ -139,7 +140,7 @@ export const HistoryScreen = () => {
             <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id!)}>
               <Ionicons name='trash-outline' size={18} color={Colors.accent} />
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
           )}
         />
       ) : (
@@ -159,26 +160,29 @@ export const HistoryScreen = () => {
           <FlatList data={filteredActivities} keyExtractor={(item) => item.id!.toString()}
             renderItem={({item, index}) => (
             <View style={[styles.tableRow, index % 2 === 1 && {backgroundColor: Colors.cardBackground},]}>
-              <Text style={[styles.td, {width: 90, fontWeight: 'bold'}]}>
-                {item.type === 'RUNNING' ? 'Trčanje' : item.type === 'WALKING' ? 'Hodanje' : 'Bicikl'}
-              </Text>
+              <TouchableOpacity style={{ flexDirection: 'row', flex: 1 }} activeOpacity={0.7} 
+              onPress={() => navigation.navigate('ActivityDetail', {activity: item})}>
+                <Text style={[styles.td, {width: 90, fontWeight: 'bold'}]}>
+                  {item.type === 'RUNNING' ? 'Trčanje' : item.type === 'WALKING' ? 'Hodanje' : 'Bicikl'}
+                </Text>
 
-              <Text style={[styles.td, {width: 90}]}>
-                {new Date(item.date).toLocaleDateString('sr-RS')}
-              </Text>
+                <Text style={[styles.td, {width: 90}]}>
+                  {new Date(item.date).toLocaleDateString('sr-RS')}
+                </Text>
 
-              <Text style={[styles.td, {width: 80}]}>
-                {(item.distance/1000).toFixed(2)} km
-              </Text>
+                <Text style={[styles.td, {width: 80}]}>
+                  {(item.distance/1000).toFixed(2)} km
+                </Text>
 
-              <Text style={[styles.td, {width: 80}]}>
-                {formatTime(item.duration)}
-              </Text>
+                <Text style={[styles.td, {width: 80}]}>
+                  {formatTime(item.duration)}
+                </Text>
 
-              <Text style={[styles.td, {width: 80}]}>
-                {item.averageSpeed} km/h
-              </Text>
-
+                <Text style={[styles.td, {width: 80}]}>
+                  {item.averageSpeed} km/h
+                </Text>
+              </TouchableOpacity>
+              
               <TouchableOpacity style={{width: 50, alignItems: 'center'}}
               onPress={() => handleDelete(item.id!)}>
                 <Ionicons name='trash-outline' size={16} color={Colors.accent} />

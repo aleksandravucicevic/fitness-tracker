@@ -1,0 +1,142 @@
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../utils/theme';
+import { Activity, LocationPoint } from '../models/Activity';
+
+export const ActivityDetailScreen = ({route, navigation} : any) => {
+    const {activity}: { activity: Activity } = route.params;
+
+    const routePoints: LocationPoint[] = activity.routeJson ? JSON.parse(activity.routeJson) : [];
+
+    const formatTime = (seconds: number) => {
+        const hrs = Math.floor(seconds/3600);
+        const mins = Math.floor((seconds%3600) / 60);
+        const secs = seconds % 60;
+        return hrs > 0 ? `${hrs} h ${mins} min ${secs} s` : `${mins} min ${secs < 10 ? '0' : ''}${secs} s`;
+    };
+
+    const initialRegion = routePoints.length > 0 ? {
+        latitude: routePoints[0].latitude,
+        longitude: routePoints[0].longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+    } : undefined;
+
+    return (
+        <ScrollView style={styles.container}>
+            {/* PRIKAZ RUTE NA MAPI */}
+            {routePoints.length > 0 ? (
+                <View style={styles.mapContainer}>
+                    <MapView style={styles.map} provider={PROVIDER_GOOGLE} initialRegion={initialRegion}>
+                        <Polyline coordinates={routePoints} strokeColor={Colors.primary} strokeWidth={5} />
+                    </MapView>
+                </View>
+            ) : (
+                <View style={styles.noMapCard}>
+                    <Ionicons name='cloud-offline-outline' size={48} color={Colors.textSecondary} />
+                    <Text style={styles.noMapText}>Ova aktivnost nema sačuvanu GPS rutu.</Text>
+                </View>
+            )}
+
+            {/* ANALITIKA */}
+            <View style={styles.detailsContainer}>
+                <View style={styles.headerRow}>
+                    <View>
+                        <Text style={styles.titleText}>
+                            {activity.type === 'RUNNING' ? 'Trčanje' : activity.type === 'WALKING' ? 'Hodanje' : 'Bicikl'}
+                        </Text>
+
+                        <Text style={styles.dateText}>
+                            {new Date(activity.date).toLocaleDateString('sr-RS')}
+                        </Text>
+                    </View>
+                </View>
+
+                <View style={styles.divider} />
+
+                {/* METRIKE */}
+                <View style={styles.metricsGrid}>
+                    <View style={styles.metricCard}>
+                        <Ionicons name='navigate-outline' size={22} color={Colors.primary} />
+                        <Text style={styles.metricValue}>
+                            {(activity.distance / 1000).toFixed(2)} km
+                        </Text>
+                        <Text style={styles.metricLabel}>Ukupna distanca</Text>
+                    </View>
+
+                    <View style={styles.metricCard}>
+                        <Ionicons name='time-outline' size={22} color={Colors.primary} />
+                        <Text style={styles.metricValue}>{formatTime(activity.duration)}</Text>
+                        <Text style={styles.metricLabel}>Ukupno trajanje</Text>
+                    </View>
+
+                    <View style={styles.metricCard}>
+                        <Ionicons name='speedometer-outline' size={22} color={Colors.primary} />
+                        <Text style={styles.metricValue}>{activity.averageSpeed} km/h</Text>
+                        <Text style={styles.metricLabel}>Prosječna brzina</Text>
+                    </View>
+
+                    <View style={styles.metricCard}>
+                        <Ionicons name='flame-outline' size={22} color={Colors.primary} />
+                        <Text style={styles.metricValue}>
+                            {Math.round((activity.distance / 1000) * 60)} kcal
+                        </Text>
+                        <Text style={styles.metricLabel}>Procjenjeno sagorijevanje</Text>
+                    </View>
+                </View>
+            </View>
+        </ScrollView>
+    );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: Colors.background },
+  mapContainer: { height: 280, width: '100%' },
+  map: { flex: 1 },
+  noMapCard: {
+    height: 180,
+    backgroundColor: Colors.cardBackground,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  noMapText: {
+    color: Colors.textSecondary,
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  detailsContainer: { padding: 20 },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  titleText: { fontSize: 22, fontWeight: 'bold', color: Colors.textPrimary },
+  dateText: { fontSize: 13, color: Colors.textSecondary, marginTop: 4 },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: 16,
+  },
+  metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  metricCard: {
+    width: '48%',
+    backgroundColor: Colors.cardBackground,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  metricValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.textPrimary,
+    marginTop: 8,
+  },
+  metricLabel: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
+});

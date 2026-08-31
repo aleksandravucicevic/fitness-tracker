@@ -1,9 +1,14 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View, LogBox } from 'react-native';
 import { initDatabase } from './src/db/database';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './src/services/i18n';
+
+LogBox.ignoreLogs([
+  'expo-notifications: Android Push notifications',
+  '`expo-notifications` functionality is not fully supported in Expo Go',
+]);
 
 export default function App() {
   const [isDbReady, setIsDbReady] = useState(false);

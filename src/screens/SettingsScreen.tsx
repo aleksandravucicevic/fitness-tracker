@@ -3,10 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SettingsService, UnitSystem } from '../services/settingsService';
 import { Colors } from '../utils/theme';
+import {
+  scheduleActivityReminder,
+  sendInstantNotification,
+} from '../services/notificationService';
 
 export const SettingsScreen = () => {
   const { t, i18n } = useTranslation();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -27,6 +32,11 @@ export const SettingsScreen = () => {
   const handleUnitChange = async (unit: UnitSystem) => {
     setUnitSystem(unit);
     await SettingsService.setUnitSystem(unit);
+  };
+
+  const handleNotificationsToggle = async (value: boolean) => {
+    setNotificationsEnabled(value);
+    await scheduleActivityReminder(value);
   };
 
   return (
@@ -66,6 +76,14 @@ export const SettingsScreen = () => {
           {unitSystem === 'imperial' && <Text style={styles.checkmark}>✓</Text>}
         </TouchableOpacity>
       </View>
+
+      <View style={styles.divider} />
+
+      <TouchableOpacity style={styles.row} onPress={sendInstantNotification}>
+        <Text style={[styles.rowText, {color: Colors.primary, fontWeight: 'bold'}]}>
+          Pošalji test notifikaciju...
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };

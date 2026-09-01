@@ -13,10 +13,13 @@ import { useFocusEffect,useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../utils/theme';
 import { getAllActivities, deleteActivity } from '../db/activityRepository';
-import { Activity, ActivityType } from '../models/Activity';
+import { Activity } from '../models/Activity';
+import { formatDistance, formatSpeed, formatTime, getUnitSystem } from '../utils/unitFormatter';
+import { UnitSystem } from '../services/settingsService';
 
 export const HistoryScreen = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
   const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('ALL');
@@ -24,6 +27,9 @@ export const HistoryScreen = () => {
 
   const loadActivities = async () => {
     try {
+      const currentUnit = await getUnitSystem();
+      setUnitSystem(currentUnit);
+
       const data = await getAllActivities();
       setActivities(data);
     } catch (error) {
@@ -49,12 +55,6 @@ export const HistoryScreen = () => {
         },
       },
     ]);
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds/60);
-    const secs = seconds % 60;
-    return `${mins} min ${secs < 10 ? '0' : ''}${secs} s`;
   };
 
   const filteredActivities = activities.filter((item) => {
@@ -123,17 +123,17 @@ export const HistoryScreen = () => {
             <View style={styles.cardBody}>
               <View style={styles.metric}>
                 <Text style={styles.metricLabel}>Distanca</Text>
-                <Text style={styles.metricValue}>{(item.distance/1000).toFixed(2)} km</Text>
+                <Text style={styles.metricValue}>{formatDistance(item.distance, unitSystem)}</Text>
               </View>
 
               <View style={styles.metric}>
                 <Text style={styles.metricLabel}>Trajanje</Text>
-                <Text style={styles.metricValue}>{formatTime(item.duration)}</Text>
+                <Text style={styles.metricValue}>{formatTime(item.duration, true)}</Text>
               </View>
 
               <View style={styles.metric}>
                 <Text style={styles.metricLabel}>Prosjek</Text>
-                <Text style={styles.metricValue}>{item.averageSpeed} km/h</Text>
+                <Text style={styles.metricValue}>{formatSpeed(item.averageSpeed, unitSystem)}</Text>
               </View>
             </View>
 
@@ -171,15 +171,15 @@ export const HistoryScreen = () => {
                 </Text>
 
                 <Text style={[styles.td, {width: 80}]}>
-                  {(item.distance/1000).toFixed(2)} km
+                  {formatDistance(item.duration, unitSystem)}
                 </Text>
 
                 <Text style={[styles.td, {width: 80}]}>
-                  {formatTime(item.duration)}
+                  {formatTime(item.duration, true)}
                 </Text>
 
                 <Text style={[styles.td, {width: 80}]}>
-                  {item.averageSpeed} km/h
+                  {formatSpeed(item.averageSpeed, unitSystem)}
                 </Text>
               </TouchableOpacity>
               

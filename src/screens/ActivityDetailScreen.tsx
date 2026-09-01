@@ -1,21 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../utils/theme';
 import { Activity, LocationPoint } from '../models/Activity';
+import { formatDistance, formatSpeed, formatTime, formatCalories, getUnitSystem } from '../utils/unitFormatter';
+import { UnitSystem } from '../services/settingsService';
 
-export const ActivityDetailScreen = ({route, navigation} : any) => {
+export const ActivityDetailScreen = ({ route } : any) => {
     const {activity}: { activity: Activity } = route.params;
-
     const routePoints: LocationPoint[] = activity.routeJson ? JSON.parse(activity.routeJson) : [];
+    const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
 
-    const formatTime = (seconds: number) => {
-        const hrs = Math.floor(seconds/3600);
-        const mins = Math.floor((seconds%3600) / 60);
-        const secs = seconds % 60;
-        return hrs > 0 ? `${hrs} h ${mins} min ${secs} s` : `${mins} min ${secs < 10 ? '0' : ''}${secs} s`;
-    };
+    useEffect(() => {
+        const loadUnit = async () => {
+            const currentUnit = await getUnitSystem();
+            setUnitSystem(currentUnit);
+        }
+        loadUnit();
+    }, []);
 
     const initialRegion = routePoints.length > 0 ? {
         latitude: routePoints[0].latitude,
@@ -61,29 +64,29 @@ export const ActivityDetailScreen = ({route, navigation} : any) => {
                     <View style={styles.metricCard}>
                         <Ionicons name='navigate-outline' size={22} color={Colors.primary} />
                         <Text style={styles.metricValue}>
-                            {(activity.distance / 1000).toFixed(2)} km
+                            {formatDistance(activity.distance, unitSystem)}
                         </Text>
                         <Text style={styles.metricLabel}>Ukupna distanca</Text>
                     </View>
 
                     <View style={styles.metricCard}>
                         <Ionicons name='time-outline' size={22} color={Colors.primary} />
-                        <Text style={styles.metricValue}>{formatTime(activity.duration)}</Text>
+                        <Text style={styles.metricValue}>{formatTime(activity.duration, true)}</Text>
                         <Text style={styles.metricLabel}>Ukupno trajanje</Text>
                     </View>
 
                     <View style={styles.metricCard}>
                         <Ionicons name='speedometer-outline' size={22} color={Colors.primary} />
-                        <Text style={styles.metricValue}>{activity.averageSpeed} km/h</Text>
+                        <Text style={styles.metricValue}>{formatSpeed(activity.averageSpeed, unitSystem)}</Text>
                         <Text style={styles.metricLabel}>Prosječna brzina</Text>
                     </View>
 
                     <View style={styles.metricCard}>
                         <Ionicons name='flame-outline' size={22} color={Colors.primary} />
                         <Text style={styles.metricValue}>
-                            {Math.round((activity.distance / 1000) * 60)} kcal
+                            {formatCalories((activity.distance/1000)*60)}
                         </Text>
-                        <Text style={styles.metricLabel}>Procjenjeno sagorijevanje</Text>
+                        <Text style={styles.metricLabel}>Procijenjeno sagorijevanje</Text>
                     </View>
                 </View>
             </View>

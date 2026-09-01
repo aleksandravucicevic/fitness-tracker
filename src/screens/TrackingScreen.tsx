@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useTracker } from '../hooks/useTracker';
 import { Colors } from '../utils/theme';
 import { saveActivity } from '../db/activityRepository';
 import { ActivityType } from '../models/Activity';
+import { formatDistance, formatSpeed, formatTime, getUnitSystem } from '../utils/unitFormatter';
+import { UnitSystem } from '../services/settingsService';
+import { useFocusEffect } from '@react-navigation/native';
 
 export const TrackingScreen = () => {
   const {
@@ -24,12 +27,18 @@ export const TrackingScreen = () => {
     stopTracking,
   } = useTracker();
 
-  const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hrs > 0 ? `${hrs}:` : ''}${mins < 10 && hrs > 0 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+
+  useFocusEffect(
+    useCallback(() => {
+      const loadUnit = async () => {
+        const currentUnit = await getUnitSystem();
+        setUnitSystem(currentUnit);
+      };
+
+      loadUnit();
+    }, [])
+  );
 
   const handleSave = async () => {
     stopTracking();
@@ -89,7 +98,7 @@ export const TrackingScreen = () => {
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>Distance</Text>
-            <Text style={styles.statValue}>{(distance/1000).toFixed(2)} km</Text>
+            <Text style={styles.statValue}>{formatDistance(distance, unitSystem)}</Text>
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>Vrijeme</Text>
@@ -97,7 +106,7 @@ export const TrackingScreen = () => {
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>Brzina</Text>
-            <Text style={styles.statValue}>{currentSpeed.toFixed(1)}</Text>
+            <Text style={styles.statValue}>{formatSpeed(currentSpeed, unitSystem)}</Text>
           </View>
         </View>
 

@@ -6,25 +6,31 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../utils/theme';
 import { getAllActivities } from '../db/activityRepository';
 import { Activity } from '../models/Activity';
+import { formatDistance, formatTime, getUnitSystem } from '../utils/unitFormatter';
+import { UnitSystem } from '../services/settingsService';
 
 export const HomeScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
-  const [totalDistance, setTotalDistance] = useState(0);
+  const [totalDistanceMeters, setTotalDistanceMeters] = useState(0);
   const [totalDuration, setTotalDuration] = useState(0);
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
   
   useFocusEffect(
     useCallback(() => {
       const loadDashboardData = async () => {
         try {
+          const currentUnit = await getUnitSystem();
+          setUnitSystem(currentUnit);
+
           const data = await getAllActivities();
-          setRecentActivities(data.slice(0, 3));
 
           const distSum = data.reduce((acc, curr) => acc + curr.distance, 0);
           const durSum = data.reduce((acc, curr) => acc + curr.duration, 0);
 
-          setTotalDistance(distSum);
+          setTotalDistanceMeters(distSum);
           setTotalDuration(durSum);
+          setRecentActivities(data.slice(0, 3));
         } catch(error) {
           console.error('Greška pri učitavanju podataka za dashboard:', error);
         }
@@ -33,12 +39,6 @@ export const HomeScreen = () => {
       loadDashboardData();
     }, [])
   );
-
-  const formatTime = (seconds: number) => {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    return hrs > 0 ? `${hrs} h ${mins} min` : `${mins} min`;
-  };
 
   return (
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -57,7 +57,7 @@ export const HomeScreen = () => {
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <Ionicons name='map-outline' size={24} color={Colors.primary} />
-            <Text style={styles.statValue}>{(totalDistance/1000).toFixed(1)} km</Text>
+            <Text style={styles.statValue}>{formatDistance(totalDistanceMeters, unitSystem)}</Text>
             <Text style={styles.statLabel}>Ukupno pređeno</Text>
           </View>
 
@@ -92,7 +92,7 @@ export const HomeScreen = () => {
                 </Text>
 
                 <View style={styles.activityMetrics}>
-                  <Text style={styles.metricText}>{(act.distance/1000).toFixed(2)} km</Text>
+                  <Text style={styles.metricText}>{formatDistance(act.distance, unitSystem)}</Text>
                   <Text style={styles.metricSub}>{formatTime(act.duration)}</Text>
                 </View>
               </View>

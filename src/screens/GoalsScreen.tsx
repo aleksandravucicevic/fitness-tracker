@@ -13,9 +13,13 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../utils/theme';
 import { getGoals, saveGoals, GoalsData, GoalPeriod, SingleGoalSet } from '../db/goalsRepository';
 import { getActivityStats } from '../db/activityRepository';
+import { formatDistance, kmToMiles, milesToKm, getUnitSystem } from '../utils/unitFormatter';
+import { UnitSystem } from '../services/settingsService';
 
 export const GoalsScreen = () => {
   const [period, setPeriod] = useState<GoalPeriod>('daily');
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+
   const [allGoals, setAllGoals] = useState<GoalsData>({
     daily: {},
     weekly: {},
@@ -25,13 +29,18 @@ export const GoalsScreen = () => {
   const [distanceInput, setDistanceInput] = useState<string>('');
   const [durationInput, setDurationInput] = useState<string>('');
 
-  const [currentDistanceKm, setCurrentDistanceKm] = useState<number>(0);
+  const [currentDistanceMeters, setCurrentDistanceMeters] = useState<number>(0);
   const [currentDurationMins, setCurrentDurationMins] = useState<number>(0);
   const [currentSteps, setCurrentSteps] = useState<number>(0);
 
-  const populateInputsForPeriod = (goalsSet: SingleGoalSet) => {
+  const populateInputsForPeriod = (goalsSet: SingleGoalSet, currentUnit: UnitSystem) => {
     setStepsInput(goalsSet.stepsGoal ? goalsSet.stepsGoal.toString() : '');
-    setDistanceInput(goalsSet.distanceGoalKm ? goalsSet.distanceGoalKm.toString() : '');
+
+    if(goalsSet.distanceGoalKm) {
+      const displayDist = currentUnit === 'imperial' ? kmToMiles(goalsSet.distanceGoalKm) : goalsSet.distanceGoalKm;
+      setDistanceInput(displayDist.toFixed(1));
+    }
+    
     setDurationInput(goalsSet.durationGoalMins ? goalsSet.durationGoalMins.toString() : '');
   };
 
@@ -41,7 +50,7 @@ export const GoalsScreen = () => {
       const stats = await getActivityStats('ALL', daysToFetch);
 
       const distKm = stats.totalDistance / 1000;
-      setCurrentDistanceKm(distKm);
+      setCurrentDistanceMeters(stats.totalDistance);
       setCurrentDurationMins(Math.floor(stats.totalDuration / 60));
       setCurrentSteps(Math.round(distKm * 1333));
     } catch (error) {
@@ -51,9 +60,13 @@ export const GoalsScreen = () => {
 
   const loadGoalsAndProgress = async () => {
     try {
+      const currentUnit = await getUnitSystem();
+      setUnitSystem(currentUnit);
+
       const savedGoals = await getGoals();
       setAllGoals(savedGoals);
-      populateInputsForPeriod(savedGoals[period]);
+
+      populateInputsForPeriod(savedGoals[period], currentUnit);
       await fetchProgressForPeriod(period);
     } catch (error) {
       console.error('Greška pri učitavanju ciljeva:', error);
@@ -68,23 +81,27 @@ export const GoalsScreen = () => {
 
   const handlePeriodChange = async (newPeriod: GoalPeriod) => {
     setPeriod(newPeriod);
-    populateInputsForPeriod(allGoals[newPeriod]);
+    populateInputsForPeriod(allGoals[newPeriod], unitSystem);
     await fetchProgressForPeriod(newPeriod);
   };
 
   const handleSaveGoals = async () => {
     const stp = stepsInput.trim() !== '' ? parseInt(stepsInput, 10) : undefined;
-    const dist = distanceInput.trim() !== '' ? parseFloat(distanceInput) : undefined;
+    const rawDist = distanceInput.trim() !== '' ? parseFloat(distanceInput) : undefined;
     const dur = durationInput.trim() !== '' ? parseInt(durationInput, 10) : undefined;
 
-    if (!stp && !dist && !dur) {
+    if (!stp && !rawDist && !dur) {
       Alert.alert('Upozorenje', 'Unesite najmanje jedan cilj.');
       return;
     }
 
+    let distKm: number | undefined = undefined;
+    if(rawDist && !isNaN(rawDist) && rawDist > 0)
+      distKm = unitSystem === 'imperial' ? milesToKm(rawDist) : rawDist;
+
     const updatedCurrentSet: SingleGoalSet = {
       stepsGoal: stp && !isNaN(stp) && stp > 0 ? stp : undefined,
-      distanceGoalKm: dist && !isNaN(dist) && dist > 0 ? dist : undefined,
+      distanceGoalKm: distKm ? parseFloat(distKm.toFixed(2)) : undefined,
       durationGoalMins: dur && !isNaN(dur) && dur > 0 ? dur : undefined,
     };
 
@@ -102,6 +119,9 @@ export const GoalsScreen = () => {
 
   const activeGoalSet = allGoals[period];
   const periodLabel = period === 'daily' ? 'danas' : 'posljednjih 7 dana';
+
+  const targetDistanceMeters = activeGoalSet.distanceGoalKm ? activeGoalSet.distanceGoalKm * 1000 : 0;
+  const distanceProgressPercent = targetDistanceMeters > 0 ? Math.min((currentDistanceMeters / targetDistanceMeters) * 100, 100) : 0;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
@@ -164,10 +184,10 @@ export const GoalsScreen = () => {
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>
               <Text style={styles.label}>
-                Distanca ({currentDistanceKm.toFixed(1)} / {activeGoalSet.distanceGoalKm} km)
+                Distanca ({formatDistance(currentDistanceMeters, unitSystem)} / {formatDistance(targetDistanceMeters, unitSystem)})
               </Text>
               <Text style={styles.percentText}>
-                {Math.min((currentDistanceKm / activeGoalSet.distanceGoalKm) * 100, 100).toFixed(0)}%
+                {distanceProgressPercent.toFixed(0)}%
               </Text>
             </View>
             <View style={styles.progressBarBackground}>
@@ -175,7 +195,7 @@ export const GoalsScreen = () => {
                 style={[
                   styles.progressBarFill,
                   {
-                    width: `${Math.min((currentDistanceKm / activeGoalSet.distanceGoalKm) * 100, 100)}%`,
+                    width: `${distanceProgressPercent}%`,
                   },
                 ]}
               />
@@ -223,13 +243,13 @@ export const GoalsScreen = () => {
           placeholderTextColor={Colors.textSecondary}
         />
 
-        <Text style={styles.inputLabel}>Distanca (km):</Text>
+        <Text style={styles.inputLabel}>Distanca ({unitSystem === 'imperial' ? 'mi' : 'km'}):</Text>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
           value={distanceInput}
           onChangeText={setDistanceInput}
-          placeholder="npr. 20"
+          placeholder={unitSystem === 'imperial' ? 'npr. 12.5' : 'npr. 20'}
           placeholderTextColor={Colors.textSecondary}
         />
 

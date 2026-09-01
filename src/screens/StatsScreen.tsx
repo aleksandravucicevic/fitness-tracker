@@ -14,31 +14,33 @@ import { Colors } from '../utils/theme';
 import { getActivityStats, ActivityStats } from '../db/activityRepository';
 import { getAllActivities } from '../db/activityRepository';
 import { Activity } from '../models/Activity';
+import { formatDistance, formatSpeed, formatTime, getUnitSystem, metersToMiles } from '../utils/unitFormatter';
+import { UnitSystem } from '../services/settingsService';
 
 const screenWidth = Dimensions.get('window').width;
 
 export const StatsScreen = () => {
   const [periodDays, setPeriodDays] = useState<number>(7);
   const [activityType, setActivityType] = useState<string>('ALL');
-  const [stats, setStats] = useState<ActivityStats>({
-    totalDistance: 0,
-    totalDuration: 0,
-    totalCount: 0,
-    avgSpeed: 0,
-  });
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+  const [stats, setStats] = useState<ActivityStats>({ totalDistance: 0, totalDuration: 0, totalCount: 0, avgSpeed: 0});
 
-  const [chartData, setChartData] = useState<{labels: string[]; data: number[]}>({
+  const [chartData, setChartData] = useState<{labels: string[]; data: number[]; unit: string }>({
     labels: ['-'],
     data: [0],
+    unit: 'km',
   });
 
   const loadData = async () => {
     try {
+      const currentUnit = await getUnitSystem();
+      setUnitSystem(currentUnit);
+
       const currentStats = await getActivityStats(activityType, periodDays);
       setStats(currentStats);
 
       const allActivities = await getAllActivities();
-      prepareChartData(allActivities, periodDays, activityType);
+      prepareChartData(allActivities, periodDays, activityType, currentUnit);
     } catch (error) {
       console.error('Greška pri učitavanju statistike:', error);
     }
@@ -50,7 +52,9 @@ export const StatsScreen = () => {
     }, [periodDays, activityType])
   );
 
-  const prepareChartData = (activities: Activity[], days: number, type: string) => {
+  const prepareChartData = (activities: Activity[], days: number, type: string, currentUnit: UnitSystem) => {
+    const unitLabel = currentUnit === 'imperial' ? 'mi' : 'km';
+    
     const filtered = activities.filter((act) => {
       const actDate = new Date(act.date);
       const cutoffDate = new Date();
@@ -58,6 +62,11 @@ export const StatsScreen = () => {
       const matchesType = type === 'ALL' || act.type === type;
       return actDate >= cutoffDate && matchesType;
     });
+
+    const toChartUnit = (meters: number): number => {
+      const val = currentUnit === 'imperial' ? metersToMiles(meters) : meters/1000;
+      return Number(val.toFixed(2));
+    };
 
     if (days === 7) {
       const daysOfWeek = ['Ned', 'Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub'];
@@ -70,30 +79,29 @@ export const StatsScreen = () => {
         const dayLabel = daysOfWeek[d.getDay()];
         labels.push(dayLabel);
 
-        const totalForDay = filtered.filter((act) => new Date(act.date).toDateString() === d.toDateString())
-                                    .reduce((sum, act) => sum + act.distance / 1000, 0);
+        const totalMetersForDay = filtered.filter((act) => new Date(act.date).toDateString() === d.toDateString())
+                                    .reduce((sum, act) => sum + act.distance, 0);
 
-        data.push(Number(totalForDay.toFixed(1)));
+        data.push(toChartUnit(totalMetersForDay));
       }
 
-      setChartData({labels, data});
+      setChartData({labels, data, unit: unitLabel});
     } else {
       const labels = ['P1', 'P2', 'P3', 'P4'];
+      const m1 = filtered.slice(0, 2).reduce((s, a) => s + a.distance, 0);
+      const m2 = filtered.slice(2, 4).reduce((s, a) => s + a.distance, 0);
+      const m3 = filtered.slice(4, 6).reduce((s, a) => s + a.distance, 0);
+      const m4 = filtered.slice(6).reduce((s, a) => s + a.distance, 0);
+
       const data = [
-        filtered.slice(0, 2).reduce((s, a) => s + a.distance / 1000, 0),
-        filtered.slice(2, 4).reduce((s, a) => s + a.distance / 1000, 0),
-        filtered.slice(4, 6).reduce((s, a) => s + a.distance / 1000, 0),
-        filtered.slice(6).reduce((s, a) => s + a.distance / 1000, 0),
-      ].map((v) => Number(v.toFixed(1)));
+        toChartUnit(m1),
+        toChartUnit(m2),
+        toChartUnit(m3),
+        toChartUnit(m4),
+      ];
 
-      setChartData({labels, data});
+      setChartData({labels, data, unit: unitLabel});
     }
-  };
-
-  const formatDuration = (totalSeconds: number) => {
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    return hours > 0 ? `${hours} h ${minutes} min` : `${minutes} min`;
   };
 
   return (
@@ -131,14 +139,14 @@ export const StatsScreen = () => {
         <View style={styles.statCard}>
           <Ionicons name='navigate-outline' size={24} color={Colors.primary} />
           <Text style={styles.statValue}>
-            {(stats.totalDistance / 1000).toFixed(2)} km
+            {formatDistance(stats.totalDistance, unitSystem)}
           </Text>
           <Text style={styles.statLabel}>Ukupna distanca</Text>
         </View>
 
         <View style={styles.statCard}>
           <Ionicons name='time-outline' size={24} color={Colors.primary} />
-          <Text style={styles.statValue}>{formatDuration(stats.totalDuration)}</Text>
+          <Text style={styles.statValue}>{formatTime(stats.totalDuration)}</Text>
           <Text style={styles.statLabel}>Ukupno vrijeme</Text>
         </View>
 
@@ -151,7 +159,7 @@ export const StatsScreen = () => {
         <View style={styles.statCard}>
           <Ionicons name='speedometer-outline' size={24} color={Colors.primary} />
           <Text style={styles.statValue}>
-            {Number(stats.avgSpeed || 0).toFixed(1)} km/h
+            {formatSpeed(stats.avgSpeed || 0, unitSystem)}
           </Text>
           <Text style={styles.statLabel}>Prosječna brzina</Text>
         </View>
@@ -159,12 +167,12 @@ export const StatsScreen = () => {
 
       {/* GRAFIKON AKTIVNOSTI */}
       <View style={styles.chartCard}>
-        <Text style={styles.chartTitle}>Distanca po danima (km)</Text>
+        <Text style={styles.chartTitle}>Distanca po danima ({chartData.unit})</Text>
         <BarChart data={{labels: chartData.labels, datasets: [{ data: chartData.data.length > 0 ? chartData.data : [0] }],}}
                   width={screenWidth - 48}
                   height={220}
                   yAxisLabel=''
-                  yAxisSuffix='km'
+                  yAxisSuffix={chartData.unit}
                   chartConfig={{
                     backgroundColor: Colors.cardBackground,
                     backgroundGradientFrom: Colors.cardBackground,

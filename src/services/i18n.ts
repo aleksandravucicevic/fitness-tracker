@@ -14,6 +14,8 @@ const resources = {
       notifications: 'Notifikacije',
       kilometers: 'Kilometri (km)',
       miles: 'Milje (mi)',
+      enableNotifications: 'Omogući slanje notifikacija',
+      sendTestNotification: 'Pošalji test notifikaciju...',
     },
   },
   en: {
@@ -28,6 +30,8 @@ const resources = {
       notifications: 'Notifications',
       kilometers: 'Kilometers (km)',
       miles: 'Miles (mi)',
+      enableNotifications: 'Enable notifications',
+      sendTestNotification: 'Send test notification...',
     },
   },
 };

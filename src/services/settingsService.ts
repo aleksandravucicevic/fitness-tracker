@@ -2,16 +2,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LANGUAGE_KEY = '@app_language';
 const UNITS_KEY = '@app_units';
+const NOTIF_KEY = '@app_notifications_enabled';
 
 export type UnitSystem = 'metric' | 'imperial';
+export type Language = 'sr' | 'en';
 
 export const SettingsService = {
-    async getLanguage(): Promise<string> {
+    async getLanguage(): Promise<Language> {
         const lang = await AsyncStorage.getItem(LANGUAGE_KEY);
-        return lang || 'sr';
+        return (lang as Language) || 'sr';
     },
 
-    async setLanguage(lang: string): Promise<void> {
+    async setLanguage(lang: Language): Promise<void> {
         await AsyncStorage.setItem(LANGUAGE_KEY, lang);
     },
 
@@ -23,4 +25,13 @@ export const SettingsService = {
     async setUnitSystem(units: UnitSystem): Promise<void> {
         await AsyncStorage.setItem(UNITS_KEY, units);
     },
+
+    async getNotificationEnabled(): Promise<boolean> {
+        const enabled = await AsyncStorage.getItem(NOTIF_KEY);
+        return enabled !== null ? JSON.parse(enabled) : true;
+    },
+
+    async setNotificationsEnabled(enabled: boolean): Promise<void> {
+        await AsyncStorage.setItem(NOTIF_KEY, JSON.stringify(enabled));
+    }
 };

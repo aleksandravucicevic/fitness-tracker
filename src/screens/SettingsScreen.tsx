@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { SettingsService, UnitSystem } from '../services/settingsService';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 'react-native';
+import { Language, SettingsService, UnitSystem } from '../services/settingsService';
 import { Colors } from '../utils/theme';
 import {
   scheduleActivityReminder,
@@ -17,14 +17,16 @@ export const SettingsScreen = () => {
     const loadSettings = async () => {
       const savedLang = await SettingsService.getLanguage();
       const savedUnits = await SettingsService.getUnitSystem();
+      const savedNotifs = await SettingsService.getNotificationEnabled();
 
       i18n.changeLanguage(savedLang);
       setUnitSystem(savedUnits);
+      setNotificationsEnabled(savedNotifs);
     };
     loadSettings();
   }, []);
 
-  const handleLanguageChange = async (lang: string) => {
+  const handleLanguageChange = async (lang: Language) => {
     await i18n.changeLanguage(lang);
     await SettingsService.setLanguage(lang);
   };
@@ -36,6 +38,7 @@ export const SettingsScreen = () => {
 
   const handleNotificationsToggle = async (value: boolean) => {
     setNotificationsEnabled(value);
+    await SettingsService.setNotificationsEnabled(value);
     await scheduleActivityReminder(value);
   };
 
@@ -77,13 +80,25 @@ export const SettingsScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.divider} />
+      <Text style={styles.sectionTitle}>{t('notifications')}</Text>
+      <View style={styles.card}>
+        <View style={styles.row}>
+          <Text style={styles.rowText}>{t('enableNotifications')}</Text>
+          <Switch value={notificationsEnabled} onValueChange={handleNotificationsToggle}
+          trackColor={{ false: Colors.border, true: Colors.primary }} thumbColor={notificationsEnabled ? '#000' : '#f4f3f4'} />
+        </View>
 
-      <TouchableOpacity style={styles.row} onPress={sendInstantNotification}>
-        <Text style={[styles.rowText, {color: Colors.primary, fontWeight: 'bold'}]}>
-          Pošalji test notifikaciju...
-        </Text>
-      </TouchableOpacity>
+        {notificationsEnabled && (
+          <>
+          <View style={styles.divider} />
+          <TouchableOpacity style={styles.row} onPress={sendInstantNotification}>
+            <Text style={[styles.rowText, { color:Colors.primary, fontWeight: 'bold' }]}>
+              {t('sendTestNotification')}
+            </Text>
+          </TouchableOpacity>
+          </>
+        )}
+      </View>
     </View>
   );
 };

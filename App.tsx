@@ -4,6 +4,8 @@ import { initDatabase } from './src/db/database';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './src/services/i18n';
+import { SettingsService } from './src/services/settingsService';
+import i18n from './src/services/i18n';
 
 LogBox.ignoreLogs([
   'expo-notifications: Android Push notifications',
@@ -16,11 +18,14 @@ export default function App() {
   useEffect(() => {
     async function setupDb(){
       try{
+        const savedLang = await SettingsService.getLanguage();
+        await i18n.changeLanguage(savedLang);
+
         await initDatabase();
         setIsDbReady(true);
       }
       catch(error){
-        console.error('Greška pri inicijalizaciji baze:', error);
+        console.error('Greška pri inicijalizaciji aplikacije:', error);
       }
     }
     setupDb();

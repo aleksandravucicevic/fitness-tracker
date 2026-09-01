@@ -41,7 +41,10 @@ export const getActivityStats = async (type: string = 'ALL', periodDays: number 
     const db = await getDbConnection();
 
     const dateThreshold = new Date();
-    dateThreshold.setDate(dateThreshold.getDate() - periodDays);
+    dateThreshold.setHours(0, 0, 0, 0);
+    if(periodDays > 1)
+        dateThreshold.setDate(dateThreshold.getDate() - (periodDays - 1));
+    
     const isoDate = dateThreshold.toISOString();
 
     let query = `SELECT COALESCE(SUM(distance), 0) AS totalDistance,

@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { useFocusEffect,useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
+import { getActivityTypeName } from '../utils/activityUtils';
 import { Colors } from '../utils/theme';
 import { getAllActivities, deleteActivity } from '../db/activityRepository';
 import { Activity } from '../models/Activity';
@@ -18,6 +20,7 @@ import { formatDistance, formatSpeed, formatTime, getUnitSystem } from '../utils
 import { UnitSystem } from '../services/settingsService';
 
 export const HistoryScreen = () => {
+  const { t, i18n } = useTranslation();
   const [activities, setActivities] = useState<Activity[]>([]);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
   const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
@@ -44,10 +47,10 @@ export const HistoryScreen = () => {
   );
 
   const handleDelete = (id: number) => {
-    Alert.alert('Brisanje aktivnosti', 'Da li ste sigurni da želite obrisati aktivnost?', [
-      { text: 'Otkazati', style: 'cancel' },
+    Alert.alert(t('history.deleteTitle'), t('history.deleteMessage'), [
+      { text: t('history.cancel'), style: 'cancel' },
       {
-        text: 'Obriši',
+        text: t('history.delete'),
         style: 'destructive',
         onPress: async () => {
           await deleteActivity(id);
@@ -59,7 +62,8 @@ export const HistoryScreen = () => {
 
   const filteredActivities = activities.filter((item) => {
     const matchesType = selectedType === 'ALL' || item.type === selectedType;
-    const matchesSearch = item.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = item.type.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          getActivityTypeName(item.type, t).toLowerCase().includes(searchQuery.toLowerCase()) ||
                           new Date(item.date).toLocaleDateString('sr-RS').includes(searchQuery);
     return matchesType && matchesSearch;
   });
@@ -71,7 +75,7 @@ export const HistoryScreen = () => {
         {/* SEARCH */}
         <View style={styles.searchBar}>
           <Ionicons name='search-outline' size={18} color={Colors.textSecondary} />
-          <TextInput style={styles.searchInput} placeholder='Pretraga po datumu ili tipu...'
+          <TextInput style={styles.searchInput} placeholder={t('history.searchPlaceholder')}
                     placeholderTextColor={Colors.textSecondary} value={searchQuery} onChangeText={setSearchQuery} />
         </View>
 
@@ -95,7 +99,7 @@ export const HistoryScreen = () => {
           <TouchableOpacity key={type} style={[styles.chip, selectedType === type && styles.chipActive]}
             onPress={() => setSelectedType(type)}>
             <Text style={[styles.chipText, selectedType === type && styles.chipTextActive]}>
-              {type === 'ALL' ? 'Sve' : type === 'RUNNING' ? 'Trčanje' : type === 'WALKING' ? 'Hodanje' : 'Bicikl'}
+              {getActivityTypeName(type, t)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -104,7 +108,7 @@ export const HistoryScreen = () => {
       {/* SADRŽAJ LISTE/TABELE */}
       {filteredActivities.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Nema pronađenih aktivnosti.</Text>
+          <Text style={styles.emptyText}>{t('history.noActivitiesFound')}</Text>
         </View>
       ) : viewMode === 'list' ? (
         <FlatList data={filteredActivities} keyExtractor={(item) => item.id!.toString()}
@@ -112,27 +116,27 @@ export const HistoryScreen = () => {
           <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => navigation.navigate('ActivityDetail', { activity: item })}>
             <View style={styles.cardHeader}>
               <Text style={styles.activityType}>
-                {item.type === 'RUNNING' ? 'Trčanje' : item.type === 'WALKING' ? 'Hodanje' : 'Bicikl'}
+                {getActivityTypeName(item.type, t)}
               </Text>
 
               <Text style={styles.dateText}>
-                {new Date(item.date).toLocaleDateString('sr-RS')}
+                {new Date(item.date).toLocaleDateString(i18n.language)}
               </Text>
             </View>
 
             <View style={styles.cardBody}>
               <View style={styles.metric}>
-                <Text style={styles.metricLabel}>Distanca</Text>
+                <Text style={styles.metricLabel}>{t('history.distance')}</Text>
                 <Text style={styles.metricValue}>{formatDistance(item.distance, unitSystem)}</Text>
               </View>
 
               <View style={styles.metric}>
-                <Text style={styles.metricLabel}>Trajanje</Text>
+                <Text style={styles.metricLabel}>{t('history.duration')}</Text>
                 <Text style={styles.metricValue}>{formatTime(item.duration, true)}</Text>
               </View>
 
               <View style={styles.metric}>
-                <Text style={styles.metricLabel}>Prosjek</Text>
+                <Text style={styles.metricLabel}>{t('history.avgSpeed')}</Text>
                 <Text style={styles.metricValue}>{formatSpeed(item.averageSpeed, unitSystem)}</Text>
               </View>
             </View>
@@ -148,12 +152,12 @@ export const HistoryScreen = () => {
         <ScrollView horizontal style={styles.tableScrollView}>
           <View>
           <View style={styles.tableHeader}>
-            <Text style={[styles.th, {width: 90}]}>Tip</Text>
-            <Text style={[styles.th, {width: 90}]}>Datum</Text>
-            <Text style={[styles.th, {width: 80}]}>Distanca</Text>
-            <Text style={[styles.th, {width: 80}]}>Trajanje</Text>
-            <Text style={[styles.th, {width: 80}]}>Brzina</Text>
-            <Text style={[styles.th, {width: 50, textAlign: 'center'}]}>Akcija</Text>
+            <Text style={[styles.th, {width: 90}]}>{t('history.table.type')}</Text>
+            <Text style={[styles.th, {width: 90}]}>{t('history.table.date')}</Text>
+            <Text style={[styles.th, {width: 80}]}>{t('history.table.distance')}</Text>
+            <Text style={[styles.th, {width: 80}]}>{t('history.table.duration')}</Text>
+            <Text style={[styles.th, {width: 80}]}>{t('history.table.speed')}</Text>
+            <Text style={[styles.th, {width: 50, textAlign: 'center'}]}>{t('history.table.action')}</Text>
           </View>
 
           {/* TIJELO TABELE*/}
@@ -163,11 +167,11 @@ export const HistoryScreen = () => {
               <TouchableOpacity style={{ flexDirection: 'row', flex: 1 }} activeOpacity={0.7} 
               onPress={() => navigation.navigate('ActivityDetail', {activity: item})}>
                 <Text style={[styles.td, {width: 90, fontWeight: 'bold'}]}>
-                  {item.type === 'RUNNING' ? 'Trčanje' : item.type === 'WALKING' ? 'Hodanje' : 'Bicikl'}
+                  {getActivityTypeName(item.type, t)}
                 </Text>
 
                 <Text style={[styles.td, {width: 90}]}>
-                  {new Date(item.date).toLocaleDateString('sr-RS')}
+                  {new Date(item.date).toLocaleDateString(i18n.language)}
                 </Text>
 
                 <Text style={[styles.td, {width: 80}]}>

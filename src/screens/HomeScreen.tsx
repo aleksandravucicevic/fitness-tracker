@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
+import { getActivityTypeName } from '../utils/activityUtils';
 import { Colors } from '../utils/theme';
 import { getAllActivities } from '../db/activityRepository';
 import { Activity } from '../models/Activity';
@@ -10,6 +12,7 @@ import { formatDistance, formatTime, getUnitSystem } from '../utils/unitFormatte
 import { UnitSystem } from '../services/settingsService';
 
 export const HomeScreen = () => {
+  const { t, i18n } = useTranslation();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [totalDistanceMeters, setTotalDistanceMeters] = useState(0);
@@ -44,51 +47,51 @@ export const HomeScreen = () => {
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         {/* DUGME KOJE OTVARA TRACKING EKRAN */}
         <View style={styles.headerCard}>
-          <Text style={styles.greeting}>Spremni za današnji trening?</Text>
+          <Text style={styles.greeting}>{t('home.readyForWorkout')}</Text>
 
           <TouchableOpacity style={styles.startButton} activeOpacity={0.8} onPress={() => navigation.navigate('Tracking')}>
             <Ionicons name='play-circle' size={28} color='#000' />
-            <Text style={styles.startButtonText}>ZAPOČNI NOVI TRENING</Text>
+            <Text style={styles.startButtonText}>{t('home.startNewWorkout')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* REZIME AKTIVNOSTI */}
-        <Text style={styles.sectionTitle}>Rezime Aktivnosti</Text>
+        <Text style={styles.sectionTitle}>{t('home.activitySummary')}</Text>
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <Ionicons name='map-outline' size={24} color={Colors.primary} />
             <Text style={styles.statValue}>{formatDistance(totalDistanceMeters, unitSystem)}</Text>
-            <Text style={styles.statLabel}>Ukupno pređeno</Text>
+            <Text style={styles.statLabel}>{t('home.totalDistance')}</Text>
           </View>
 
           <View style={styles.statCard}>
             <Ionicons name='time-outline' size={24} color={Colors.primary} />
             <Text style={styles.statValue}>{formatTime(totalDuration)}</Text>
-            <Text style={styles.statLabel}>Aktivno vrijeme</Text>
+            <Text style={styles.statLabel}>{t('home.activeTime')}</Text>
           </View>
         </View>
 
         {/* NEDAVNE AKTIVNOSTI */}
-        <Text style={styles.sectionTitle}>Nedavne Aktivnosti</Text>
+        <Text style={styles.sectionTitle}>{t('home.recentActivities')}</Text>
         {recentActivities.length === 0 ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyText}>Ne postoje sačuvani treninzi.</Text>
+            <Text style={styles.emptyText}>{t('home.noActivities')}</Text>
           </View>
         ) : (
           recentActivities.map((act) => (
             <View key={act.id} style={styles.activityCard}>
               <View style={styles.activityIcon}>
-                <Ionicons name={act.type === 'RUNNING' ? 'fitness' : act.type === 'WALKING' ? 'walk' : 'bicycle'}
+                <Ionicons name={act.type === 'RUNNING' ? 'flame' : act.type === 'WALKING' ? 'walk' : 'bicycle'}
                 size={22} color={Colors.primary} />
               </View>
 
               <View style={styles.activityInfo}>
                 <Text style={styles.activityTitle}>
-                  {act.type === 'RUNNING' ? 'Trčanje' : act.type === 'WALKING' ? 'Hodanje' : 'Bicikl'}
+                  {getActivityTypeName(act.type, t)}
                 </Text>
 
                 <Text style={styles.activitySub}>
-                  {new Date(act.date).toLocaleDateString('sr-RS')}
+                  {new Date(act.date).toLocaleDateString(i18n.language)}
                 </Text>
 
                 <View style={styles.activityMetrics}>

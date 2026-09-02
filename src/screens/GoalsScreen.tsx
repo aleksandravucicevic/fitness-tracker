@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 import { Colors } from '../utils/theme';
 import { getGoals, saveGoals, GoalsData, GoalPeriod, SingleGoalSet } from '../db/goalsRepository';
 import { getActivityStats } from '../db/activityRepository';
@@ -17,6 +18,7 @@ import { formatDistance, kmToMiles, milesToKm, getUnitSystem } from '../utils/un
 import { UnitSystem } from '../services/settingsService';
 
 export const GoalsScreen = () => {
+  const {t, i18n} = useTranslation();
   const [period, setPeriod] = useState<GoalPeriod>('daily');
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
 
@@ -91,7 +93,7 @@ export const GoalsScreen = () => {
     const dur = durationInput.trim() !== '' ? parseInt(durationInput, 10) : undefined;
 
     if (!stp && !rawDist && !dur) {
-      Alert.alert('Upozorenje', 'Unesite najmanje jedan cilj.');
+      Alert.alert(t('goals.warning'), t('goals.enterAtLeastOne'));
       return;
     }
 
@@ -114,11 +116,11 @@ export const GoalsScreen = () => {
     setAllGoals(updatedAllGoals);
     await fetchProgressForPeriod(period);
 
-    Alert.alert('Uspjeh', 'Ciljevi su uspješno sačuvani.');
+    Alert.alert(t('goals.success'), t('goals.savedSuccessfully'));
   };
 
   const activeGoalSet = allGoals[period];
-  const periodLabel = period === 'daily' ? 'danas' : 'posljednjih 7 dana';
+  const periodLabel = period === 'daily' ? t('goals.today') : t('goals.last7Days');
 
   const targetDistanceMeters = activeGoalSet.distanceGoalKm ? activeGoalSet.distanceGoalKm * 1000 : 0;
   const distanceProgressPercent = targetDistanceMeters > 0 ? Math.min((currentDistanceMeters / targetDistanceMeters) * 100, 100) : 0;
@@ -132,7 +134,7 @@ export const GoalsScreen = () => {
           onPress={() => handlePeriodChange('daily')}
         >
           <Text style={[styles.periodBtnText, period === 'daily' && styles.periodBtnTextActive]}>
-            Dnevni ciljevi
+            {t('goals.dailyGoals')}
           </Text>
         </TouchableOpacity>
 
@@ -141,17 +143,17 @@ export const GoalsScreen = () => {
           onPress={() => handlePeriodChange('weekly')}
         >
           <Text style={[styles.periodBtnText, period === 'weekly' && styles.periodBtnTextActive]}>
-            Sedmični ciljevi
+            {t('goals.weeklyGoals')}
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* NAPREDAK */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Ostvareno za {periodLabel}</Text>
+        <Text style={styles.cardTitle}>{t('goals.achievedFor', { period: periodLabel })}</Text>
 
         {!activeGoalSet.stepsGoal && !activeGoalSet.distanceGoalKm && !activeGoalSet.durationGoalMins && (
-          <Text style={styles.noGoalsText}>Niste postavili nijedan cilj. Unesite željene ciljeve.</Text>
+          <Text style={styles.noGoalsText}>{t('goals.noGoalsSet')}</Text>
         )}
 
         {/* KORACI */}
@@ -159,7 +161,7 @@ export const GoalsScreen = () => {
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>
               <Text style={styles.label}>
-                Koraci ({currentSteps} / {activeGoalSet.stepsGoal})
+                {t('goals.steps')} ({currentSteps} / {activeGoalSet.stepsGoal})
               </Text>
               <Text style={styles.percentText}>
                 {Math.min((currentSteps / activeGoalSet.stepsGoal) * 100, 100).toFixed(0)}%
@@ -184,7 +186,7 @@ export const GoalsScreen = () => {
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>
               <Text style={styles.label}>
-                Distanca ({formatDistance(currentDistanceMeters, unitSystem)} / {formatDistance(targetDistanceMeters, unitSystem)})
+                {t('goals.distance')} ({formatDistance(currentDistanceMeters, unitSystem)} / {formatDistance(targetDistanceMeters, unitSystem)})
               </Text>
               <Text style={styles.percentText}>
                 {distanceProgressPercent.toFixed(0)}%
@@ -208,7 +210,7 @@ export const GoalsScreen = () => {
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>
               <Text style={styles.label}>
-                Vreme ({currentDurationMins} / {activeGoalSet.durationGoalMins} min)
+                {t('goals.time')} ({currentDurationMins} / {activeGoalSet.durationGoalMins} min)
               </Text>
               <Text style={styles.percentText}>
                 {Math.min((currentDurationMins / activeGoalSet.durationGoalMins) * 100, 100).toFixed(0)}%
@@ -231,9 +233,9 @@ export const GoalsScreen = () => {
 
       {/* PODEŠAVANJE CILJEVA */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Podesi {period === 'daily' ? 'dnevne' : 'sedmične'} ciljeve</Text>
+        <Text style={styles.cardTitle}>{t('goals.setGoalsTitle', { period: period === 'daily' ? t('goals.daily') : t('goals.weekly') })}</Text>
 
-        <Text style={styles.inputLabel}>Broj koraka:</Text>
+        <Text style={styles.inputLabel}>{t('goals.stepCount')}:</Text>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
@@ -243,7 +245,7 @@ export const GoalsScreen = () => {
           placeholderTextColor={Colors.textSecondary}
         />
 
-        <Text style={styles.inputLabel}>Distanca ({unitSystem === 'imperial' ? 'mi' : 'km'}):</Text>
+        <Text style={styles.inputLabel}>{t('goals.distanceWithUnit', { unit: unitSystem === 'imperial' ? 'mi' : 'km' })}:</Text>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
@@ -253,7 +255,7 @@ export const GoalsScreen = () => {
           placeholderTextColor={Colors.textSecondary}
         />
 
-        <Text style={styles.inputLabel}>Vrijeme (min):</Text>
+        <Text style={styles.inputLabel}>{t('goals.timeInMin')}:</Text>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
@@ -265,7 +267,7 @@ export const GoalsScreen = () => {
 
         <TouchableOpacity style={styles.saveButton} onPress={handleSaveGoals}>
           <Ionicons name="save-outline" size={20} color="#000" />
-          <Text style={styles.saveButtonText}>Sačuvaj ciljeve</Text>
+          <Text style={styles.saveButtonText}>{t('goals.saveGoals')}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

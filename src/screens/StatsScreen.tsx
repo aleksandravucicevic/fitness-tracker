@@ -10,6 +10,8 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { BarChart } from 'react-native-chart-kit';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
+import { getActivityTypeName } from '../utils/activityUtils';
 import { Colors } from '../utils/theme';
 import { getActivityStats, ActivityStats } from '../db/activityRepository';
 import { getAllActivities } from '../db/activityRepository';
@@ -20,6 +22,7 @@ import { UnitSystem } from '../services/settingsService';
 const screenWidth = Dimensions.get('window').width;
 
 export const StatsScreen = () => {
+  const {t, i18n} = useTranslation();
   const [periodDays, setPeriodDays] = useState<number>(7);
   const [activityType, setActivityType] = useState<string>('ALL');
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
@@ -69,14 +72,14 @@ export const StatsScreen = () => {
     };
 
     if (days === 7) {
-      const daysOfWeek = ['Ned', 'Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub'];
+      const daysOfWeek = ['stats,daysOfWeek.sun', 'stats,daysOfWeek.mon', 'stats,daysOfWeek.tue', 'stats,daysOfWeek.wed', 'stats,daysOfWeek.thu', 'stats,daysOfWeek.fri', 'stats,daysOfWeek.sat'];
       const labels: string[] = [];
       const data: number[] = [];
 
       for(let i = 6; i>=0; i--){
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const dayLabel = daysOfWeek[d.getDay()];
+        const dayLabel = t(daysOfWeek[d.getDay()]);
         labels.push(dayLabel);
 
         const totalMetersForDay = filtered.filter((act) => new Date(act.date).toDateString() === d.toDateString())
@@ -109,9 +112,9 @@ export const StatsScreen = () => {
       {/* SELEKTOR PERIODA */}
       <View style={styles.periodSelector}>
         {[
-          { label: '7 dana', value: 7},
-          { label: '30 dana', value: 30},
-          { label: '1 godina', value: 365 },
+          { label: t('stats.days7'), value: 7},
+          { label: t('stats.days30'), value: 30},
+          { label: t('stats.year1'), value: 365 },
         ].map((p) => (
           <TouchableOpacity key={p.value} style={[styles.periodBtn, periodDays === p.value && styles.periodBtnActive]}
           onPress={() => setPeriodDays(p.value)}>
@@ -128,7 +131,7 @@ export const StatsScreen = () => {
           <TouchableOpacity key={type} style={[styles.chip, activityType === type && styles.chipActive]}
           onPress={() => setActivityType(type)}>
             <Text style={[styles.chipText, activityType === type && styles.chipTextActive]}>
-              {type === 'ALL' ? 'Sve' : type === 'RUNNING' ? 'Trčanje' : type === 'WALKING' ? 'Hodanje' : 'Bicikl'}
+              {getActivityTypeName(type, t)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -141,19 +144,19 @@ export const StatsScreen = () => {
           <Text style={styles.statValue}>
             {formatDistance(stats.totalDistance, unitSystem)}
           </Text>
-          <Text style={styles.statLabel}>Ukupna distanca</Text>
+          <Text style={styles.statLabel}>{t('stats.totalDistance')}</Text>
         </View>
 
         <View style={styles.statCard}>
           <Ionicons name='time-outline' size={24} color={Colors.primary} />
           <Text style={styles.statValue}>{formatTime(stats.totalDuration)}</Text>
-          <Text style={styles.statLabel}>Ukupno vrijeme</Text>
+          <Text style={styles.statLabel}>{t('stats.totalTime')}</Text>
         </View>
 
         <View style={styles.statCard}>
           <Ionicons name='fitness-outline' size={24} color={Colors.primary} />
           <Text style={styles.statValue}>{stats.totalCount}</Text>
-          <Text style={styles.statLabel}>Broj aktivnosti</Text>
+          <Text style={styles.statLabel}>{t('stats.activityCount')}</Text>
         </View>
 
         <View style={styles.statCard}>
@@ -161,13 +164,13 @@ export const StatsScreen = () => {
           <Text style={styles.statValue}>
             {formatSpeed(stats.avgSpeed || 0, unitSystem)}
           </Text>
-          <Text style={styles.statLabel}>Prosječna brzina</Text>
+          <Text style={styles.statLabel}>{t('stats.avgSpeed')}</Text>
         </View>
       </View>
 
       {/* GRAFIKON AKTIVNOSTI */}
       <View style={styles.chartCard}>
-        <Text style={styles.chartTitle}>Distanca po danima ({chartData.unit})</Text>
+        <Text style={styles.chartTitle}>{t('stats.chartTitle', {unit: chartData.unit})}</Text>
         <BarChart data={{labels: chartData.labels, datasets: [{ data: chartData.data.length > 0 ? chartData.data : [0] }],}}
                   width={screenWidth - 48}
                   height={220}

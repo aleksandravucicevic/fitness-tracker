@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
+import { getActivityTypeName } from '../utils/activityUtils';
 import { Colors } from '../utils/theme';
 import { Activity, LocationPoint } from '../models/Activity';
 import { formatDistance, formatSpeed, formatTime, formatCalories, getUnitSystem } from '../utils/unitFormatter';
 import { UnitSystem } from '../services/settingsService';
 
 export const ActivityDetailScreen = ({ route } : any) => {
+    const {t, i18n} = useTranslation();
     const {activity}: { activity: Activity } = route.params;
     const routePoints: LocationPoint[] = activity.routeJson ? JSON.parse(activity.routeJson) : [];
     const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
@@ -39,7 +42,7 @@ export const ActivityDetailScreen = ({ route } : any) => {
             ) : (
                 <View style={styles.noMapCard}>
                     <Ionicons name='cloud-offline-outline' size={48} color={Colors.textSecondary} />
-                    <Text style={styles.noMapText}>Ova aktivnost nema sačuvanu GPS rutu.</Text>
+                    <Text style={styles.noMapText}>{t('activityDetail.noGpsRoute')}</Text>
                 </View>
             )}
 
@@ -48,11 +51,11 @@ export const ActivityDetailScreen = ({ route } : any) => {
                 <View style={styles.headerRow}>
                     <View>
                         <Text style={styles.titleText}>
-                            {activity.type === 'RUNNING' ? 'Trčanje' : activity.type === 'WALKING' ? 'Hodanje' : 'Bicikl'}
+                            {getActivityTypeName(activity.type, t)}
                         </Text>
 
                         <Text style={styles.dateText}>
-                            {new Date(activity.date).toLocaleDateString('sr-RS')}
+                            {new Date(activity.date).toLocaleDateString(i18n.language)}
                         </Text>
                     </View>
                 </View>
@@ -66,19 +69,19 @@ export const ActivityDetailScreen = ({ route } : any) => {
                         <Text style={styles.metricValue}>
                             {formatDistance(activity.distance, unitSystem)}
                         </Text>
-                        <Text style={styles.metricLabel}>Ukupna distanca</Text>
+                        <Text style={styles.metricLabel}>{t('activityDetail.totalDistance')}</Text>
                     </View>
 
                     <View style={styles.metricCard}>
                         <Ionicons name='time-outline' size={22} color={Colors.primary} />
                         <Text style={styles.metricValue}>{formatTime(activity.duration, true)}</Text>
-                        <Text style={styles.metricLabel}>Ukupno trajanje</Text>
+                        <Text style={styles.metricLabel}>{t('activityDetail.totalDuration')}</Text>
                     </View>
 
                     <View style={styles.metricCard}>
                         <Ionicons name='speedometer-outline' size={22} color={Colors.primary} />
                         <Text style={styles.metricValue}>{formatSpeed(activity.averageSpeed, unitSystem)}</Text>
-                        <Text style={styles.metricLabel}>Prosječna brzina</Text>
+                        <Text style={styles.metricLabel}>{t('activityDetail.avgSpeed')}</Text>
                     </View>
 
                     <View style={styles.metricCard}>
@@ -86,7 +89,7 @@ export const ActivityDetailScreen = ({ route } : any) => {
                         <Text style={styles.metricValue}>
                             {formatCalories((activity.distance/1000)*60)}
                         </Text>
-                        <Text style={styles.metricLabel}>Procijenjeno sagorijevanje</Text>
+                        <Text style={styles.metricLabel}>{t('activityDetail.estCalories')}</Text>
                     </View>
                 </View>
             </View>

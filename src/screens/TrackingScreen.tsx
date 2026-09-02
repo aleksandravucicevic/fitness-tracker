@@ -2,6 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useTracker } from '../hooks/useTracker';
+import { useTranslation } from 'react-i18next';
+import { getActivityTypeName } from '../utils/activityUtils';
 import { Colors } from '../utils/theme';
 import { saveActivity } from '../db/activityRepository';
 import { ActivityType } from '../models/Activity';
@@ -10,6 +12,7 @@ import { UnitSystem } from '../services/settingsService';
 import { useFocusEffect } from '@react-navigation/native';
 
 export const TrackingScreen = () => {
+  const {t, i18n} = useTranslation();
   const {
     isTracking,
     isPaused,
@@ -52,10 +55,10 @@ export const TrackingScreen = () => {
         routeJson: JSON.stringify(route),
         averageSpeed: parseFloat(avgSpeed.toFixed(2)),
       });
-      Alert.alert('Uspješno!', 'Vaša aktivnost je sačuvana u istoriju aktivnosti.');
+      Alert.alert(t('tracking.success'), t('tracking.savedSuccessfully'));
     } catch (error) {
       console.error(error);
-      Alert.alert('Greška', 'Došlo je do greške pri učitavanju aktivnosti.');
+      Alert.alert(t('tracking.success'), t('tracking.saveError'));
     }
   };
 
@@ -87,7 +90,7 @@ export const TrackingScreen = () => {
               <TouchableOpacity key={type} style={[styles.typeButton, activityType === type && styles.selectedTypeButton, ]}
               onPress={() => setActivityType(type)}>
                 <Text style={[styles.typeText, activityType === type && styles.selectedTypeText, ]}>
-                  {type === 'RUNNING' ? 'Trčanje' : type === 'WALKING' ? 'Hodanje' : 'Bicikl'}
+                  {getActivityTypeName(type, t)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -97,15 +100,15 @@ export const TrackingScreen = () => {
         {/* METRIKE */}
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
-            <Text style={styles.statLabel}>Distance</Text>
+            <Text style={styles.statLabel}>{t('tracking.distance')}</Text>
             <Text style={styles.statValue}>{formatDistance(distance, unitSystem)}</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statLabel}>Vrijeme</Text>
+            <Text style={styles.statLabel}>{t('tracking.time')}</Text>
             <Text style={styles.statValue}>{formatTime(duration)}</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statLabel}>Brzina</Text>
+            <Text style={styles.statLabel}>{t('tracking.speed')}</Text>
             <Text style={styles.statValue}>{formatSpeed(currentSpeed, unitSystem)}</Text>
           </View>
         </View>
@@ -114,22 +117,22 @@ export const TrackingScreen = () => {
         <View style={styles.actionContainer}>
           {!isTracking ? (
             <TouchableOpacity style={styles.startButton} onPress={startTracking}>
-              <Text style={styles.buttonText}>START</Text>
+              <Text style={styles.buttonText}>{t('tracking.start')}</Text>
             </TouchableOpacity>
           ) : (
             <View style={styles.activeControls}>
               {isPaused ? (
                 <TouchableOpacity style={styles.resumeButton} onPress={resumeTracking}>
-                  <Text style={styles.buttonText}>NASTAVI</Text>
+                  <Text style={styles.buttonText}>{t('tracking.resume')}</Text>
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity style={styles.pauseButton} onPress={pauseTracking}>
-                  <Text style={styles.buttonText}>PAUZA</Text>
+                  <Text style={styles.buttonText}>{t('tracking.pause')}</Text>
                 </TouchableOpacity>
               )}
 
               <TouchableOpacity style={styles.stopButton} onPress={handleSave}>
-                <Text style={styles.buttonText}>SAČUVAJ</Text>
+                <Text style={styles.buttonText}>{t('tracking.save')}</Text>
               </TouchableOpacity>
             </View>
           )}

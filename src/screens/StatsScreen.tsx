@@ -52,7 +52,7 @@ export const StatsScreen = () => {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [periodDays, activityType])
+    }, [periodDays, activityType, i18n.language])
   );
 
   const prepareChartData = (activities: Activity[], days: number, type: string, currentUnit: UnitSystem) => {
@@ -72,7 +72,7 @@ export const StatsScreen = () => {
     };
 
     if (days === 7) {
-      const daysOfWeek = ['stats,daysOfWeek.sun', 'stats,daysOfWeek.mon', 'stats,daysOfWeek.tue', 'stats,daysOfWeek.wed', 'stats,daysOfWeek.thu', 'stats,daysOfWeek.fri', 'stats,daysOfWeek.sat'];
+      const daysOfWeek = ['stats.daysOfWeek.sun', 'stats.daysOfWeek.mon', 'stats.daysOfWeek.tue', 'stats.daysOfWeek.wed', 'stats.daysOfWeek.thu', 'stats.daysOfWeek.fri', 'stats.daysOfWeek.sat'];
       const labels: string[] = [];
       const data: number[] = [];
 
@@ -118,7 +118,7 @@ export const StatsScreen = () => {
         ].map((p) => (
           <TouchableOpacity key={p.value} style={[styles.periodBtn, periodDays === p.value && styles.periodBtnActive]}
           onPress={() => setPeriodDays(p.value)}>
-            <Text style={[styles.periodBtn, periodDays === p.value && styles.periodBtnActive]}>
+            <Text style={[styles.periodBtnText, periodDays === p.value && styles.periodBtnTextActive]}>
               {p.label}
             </Text>
           </TouchableOpacity>
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  periodBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
+  periodBtn: { flex: 1, paddingVertical: 6, alignItems: 'center', borderRadius: 8 },
   periodBtnActive: { backgroundColor: Colors.primary },
   periodBtnText: { color: Colors.textSecondary, fontWeight: '600', fontSize: 13 },
   periodBtnTextActive: { color: '#000', fontWeight: 'bold' },

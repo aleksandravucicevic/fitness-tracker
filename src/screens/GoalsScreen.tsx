@@ -235,35 +235,41 @@ export const GoalsScreen = () => {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{t('goals.setGoalsTitle', { period: period === 'daily' ? t('goals.daily') : t('goals.weekly') })}</Text>
 
+        <View style={styles.rowInputs}>
+          <View style={styles.inputCol}>
+            <Text style={styles.inputLabel}>{t('goals.timeInMin')}:</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={durationInput}
+              onChangeText={setDurationInput}
+              placeholder="npr. 150"
+              placeholderTextColor={Colors.textSecondary}
+            />
+          </View>
+
+          <View style={styles.inputCol}>
+            <Text style={styles.inputLabel}>{t('goals.distanceWithUnit', { unit: unitSystem === 'imperial' ? 'mi' : 'km' })}:</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={distanceInput}
+              onChangeText={setDistanceInput}
+              placeholder={unitSystem === 'imperial' ? 'npr. 12.5' : 'npr. 20'}
+              placeholderTextColor={Colors.textSecondary}
+            />
+          </View>
+        </View>
+
         <Text style={styles.inputLabel}>{t('goals.stepCount')}:</Text>
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={stepsInput}
-          onChangeText={setStepsInput}
-          placeholder="npr. 10000"
-          placeholderTextColor={Colors.textSecondary}
-        />
-
-        <Text style={styles.inputLabel}>{t('goals.distanceWithUnit', { unit: unitSystem === 'imperial' ? 'mi' : 'km' })}:</Text>
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={distanceInput}
-          onChangeText={setDistanceInput}
-          placeholder={unitSystem === 'imperial' ? 'npr. 12.5' : 'npr. 20'}
-          placeholderTextColor={Colors.textSecondary}
-        />
-
-        <Text style={styles.inputLabel}>{t('goals.timeInMin')}:</Text>
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={durationInput}
-          onChangeText={setDurationInput}
-          placeholder="npr. 150"
-          placeholderTextColor={Colors.textSecondary}
-        />
+            <TextInput
+              style={styles.input}
+              keyboardType="numeric"
+              value={stepsInput}
+              onChangeText={setStepsInput}
+              placeholder="npr. 10000"
+              placeholderTextColor={Colors.textSecondary}
+            />
 
         <TouchableOpacity style={styles.saveButton} onPress={handleSaveGoals}>
           <Ionicons name="save-outline" size={20} color="#000" />
@@ -305,6 +311,8 @@ const styles = StyleSheet.create({
   percentText: { color: Colors.primary, fontWeight: 'bold', fontSize: 13 },
   progressBarBackground: { height: 12, backgroundColor: Colors.border, borderRadius: 6, overflow: 'hidden' },
   progressBarFill: { height: '100%', backgroundColor: Colors.primary, borderRadius: 6 },
+  rowInputs: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+  inputCol: { flex: 1 },
   inputLabel: { color: Colors.textSecondary, fontSize: 13, marginBottom: 6, marginTop: 4 },
   input: {
     backgroundColor: Colors.background,

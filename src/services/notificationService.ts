@@ -87,6 +87,10 @@ export const sendInstantNotification = async () => {
             title: 'Test podsjetnik!',
             body: 'Notifikacije uspješno dodane!',
         },
-        trigger: null,
+        trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: 10, // 10 sekundi
+        repeats: false,
+        },
     });
 };

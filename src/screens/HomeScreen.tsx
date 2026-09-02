@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   greeting: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: Colors.textPrimary,
   },
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderRadius: 30,
     marginTop: 12,
     gap: 8,
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   startButtonText: {
     color: '#000',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 15,
   },
   sectionTitle: {
     fontSize: 16,
@@ -183,6 +183,7 @@ const styles = StyleSheet.create({
   activityCard: {
     backgroundColor: Colors.cardBackground,
     padding: 14,
+    paddingVertical: 10,
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
   activityTitle: {
     color: Colors.textPrimary,
     fontWeight: '600',
-    fontSize: 15,
+    fontSize: 16,
   },
   activitySub: {
     color: Colors.textSecondary,

@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const LANGUAGE_KEY = '@app_language';
 const UNITS_KEY = '@app_units';
 const NOTIF_KEY = '@app_notifications_enabled';
+const NOTIF_TIME_KEY = '@notification_time';
 
 export type UnitSystem = 'metric' | 'imperial';
 export type Language = 'sr' | 'en';
@@ -33,5 +34,22 @@ export const SettingsService = {
 
     async setNotificationsEnabled(enabled: boolean): Promise<void> {
         await AsyncStorage.setItem(NOTIF_KEY, JSON.stringify(enabled));
-    }
+    },
+
+    async getNotificationTime(): Promise<{ hour: number; minute: number }> {
+        try {
+            const time = await AsyncStorage.getItem(NOTIF_TIME_KEY);
+            return time ? JSON.parse(time) : { hour: 20, minute: 0};
+        } catch {
+            return { hour: 20, minute: 0 };
+        }
+    },
+
+    async setNotificationTime(hour: number, minute: number): Promise<void> {
+        try {
+            await AsyncStorage.setItem(NOTIF_TIME_KEY, JSON.stringify({ hour, minute}));
+        } catch (error) {
+            console.error('Greška pri čuvanju vremena za notifikacije:', error);
+        }
+    },
 };

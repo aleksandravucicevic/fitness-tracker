@@ -4,24 +4,34 @@ import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 're
 import { Language, SettingsService, UnitSystem } from '../services/settingsService';
 import { Colors } from '../utils/theme';
 import {
-  scheduleActivityReminder,
+  scheduleDailyReminder,
   sendInstantNotification,
 } from '../services/notificationService';
+
+const TIME_OPTIONS = [
+  { label: '09:00', hour: 9, minute: 0 },
+  { label: '18:00', hour: 18, minute: 0 },
+  { label: '20:00', hour: 20, minute: 0 },
+  { label: '21:00', hour: 21, minute: 0 },
+];
 
 export const SettingsScreen = () => {
   const { t, i18n } = useTranslation();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
   const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
+  const [selectedTime, setSelectedTime] = useState<{ hour: number; minute: number }>({ hour: 20, minute: 0 });
 
   useEffect(() => {
     const loadSettings = async () => {
       const savedLang = await SettingsService.getLanguage();
       const savedUnits = await SettingsService.getUnitSystem();
       const savedNotifs = await SettingsService.getNotificationEnabled();
+      const savedTime = await SettingsService.getNotificationTime();
 
       i18n.changeLanguage(savedLang);
       setUnitSystem(savedUnits);
       setNotificationsEnabled(savedNotifs);
+      setSelectedTime(savedTime);
     };
     loadSettings();
   }, []);
@@ -39,7 +49,13 @@ export const SettingsScreen = () => {
   const handleNotificationsToggle = async (value: boolean) => {
     setNotificationsEnabled(value);
     await SettingsService.setNotificationsEnabled(value);
-    await scheduleActivityReminder(value);
+    await scheduleDailyReminder();
+  };
+
+  const handleTimeChange = async (hour: number, minute: number) => {
+    setSelectedTime({ hour, minute });
+    await SettingsService.setNotificationTime(hour, minute);
+    await scheduleDailyReminder();
   };
 
   return (
@@ -80,6 +96,7 @@ export const SettingsScreen = () => {
         </TouchableOpacity>
       </View>
 
+      {/* NOTIFIKACIJE */}
       <Text style={styles.sectionTitle}>{t('notifications')}</Text>
       <View style={styles.card}>
         <View style={styles.row}>
@@ -91,11 +108,31 @@ export const SettingsScreen = () => {
         {notificationsEnabled && (
           <>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.row} onPress={sendInstantNotification}>
-            <Text style={[styles.rowText, { color:Colors.primary, fontWeight: 'bold' }]}>
-              {t('sendTestNotification')}
-            </Text>
-          </TouchableOpacity>
+          {/* IZBOR VREMENA PODSJETNIKA */}
+          <View style={styles.timeSection}>
+            <Text style={styles.subLabel}>{t('notificationTime')}</Text>
+            <View style={styles.timeGrid}>
+              {TIME_OPTIONS.map((item) => {
+                const isSelected = selectedTime.hour === item.hour && selectedTime.minute === item.minute;
+                return (
+                  <TouchableOpacity key={item.label} style={[styles.timeChip, isSelected && styles.selectedTimeChip]}
+                  onPress={() => handleTimeChange(item.hour, item.minute)}>
+                    <Text style={[styles.timeText, isSelected && styles.selectedTimeText]}>
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+            <TouchableOpacity style={styles.row} onPress={sendInstantNotification}>
+              <Text style={[styles.rowText, { color:Colors.primary, fontWeight: 'bold' }]}>
+                {t('sendTestNotification')}
+              </Text>
+            </TouchableOpacity>
           </>
         )}
       </View>
@@ -142,4 +179,21 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.border,
   },
+  timeSection: { padding: 16 },
+  subLabel: { fontSize: 14, color: Colors.textSecondary, marginBottom: 10 },
+  timeGrid: { flexDirection: 'row', justifyContent: 'space-between' },
+  timeChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  selectedTimeChip: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  timeText: { color: Colors.textPrimary, fontWeight: '600' },
+  selectedTimeText: { color: '#000' },
 });

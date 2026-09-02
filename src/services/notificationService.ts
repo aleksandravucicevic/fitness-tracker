@@ -1,5 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import { SettingsService } from './settingsService';
+import { useTranslation } from 'react-i18next';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -34,26 +36,41 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
     return true;
 };
 
-export const scheduleActivityReminder = async (enabled: boolean) => {
+export const scheduleDailyReminder = async (lastActivityDate?: Date | null) => {
+    const {t, i18n} = useTranslation();
+    const isEnabled = await SettingsService.getNotificationEnabled();
     await Notifications.cancelAllScheduledNotificationsAsync();
 
-    if(!enabled)
-        return;
+    if(!isEnabled) return;
 
     const hasPermission = await requestNotificationPermissions();
-    if(!hasPermission)
-        return;
+    if(!hasPermission) return;
+
+    const { hour, minute } = await SettingsService.getNotificationTime();
+
+    const today = new Date();
+    const hasTrainedToday = lastActivityDate ? (
+        new Date(lastActivityDate).getDate() === today.getDate() &&
+        new Date(lastActivityDate).getMonth() === today.getMonth() && 
+        new Date(lastActivityDate).getFullYear() === today.getFullYear()
+    ) : false;
+
+    let targetDate = new Date();
+    targetDate.setHours(hour, minute, 0, 0);
+
+    if(targetDate.getTime() <= today.getTime() || hasTrainedToday)
+        targetDate.setDate(targetDate.getDate() + 1);
 
     await Notifications.scheduleNotificationAsync({
         content: {
-            title: 'Vrijeme je za trening!',
-            body: 'Niste zabilježili aktivnost danas. Pokrenite trening da biste ostvarili svoje ciljeve!',
+            title: t('notificationsReminderTitle'),
+            body: t('notificationsReminderBody'),
             sound: true,
         },
         trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-            seconds: 24 * 3600,
-            repeats: true,
+            type: Notifications.SchedulableTriggerInputTypes.DAILY,
+            hour: targetDate.getHours(),
+            minute: targetDate.getMinutes(),
         },
     });
 };

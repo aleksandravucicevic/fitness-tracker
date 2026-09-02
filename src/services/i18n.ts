@@ -18,6 +18,9 @@ const resources = {
       miles: 'Milje (mi)',
       enableNotifications: 'Omogući slanje notifikacija',
       sendTestNotification: 'Pošalji test notifikaciju...',
+      notificationsReminderTitle: 'Vrijeme je za današnji trening!',
+      notificationsReminderBody: 'Još niste zabilježili aktivnost danas. Odradite trening i ostvarite dnevne ciljeve!',
+      notificationTime: 'Vrijeme dnevnog podsjetnika',
 
       home: {
         readyForWorkout: 'Spremni za današnji trening?',
@@ -113,7 +116,7 @@ const resources = {
       saveError: 'Došlo je do greške pri čuvanju aktivnosti.',
       success: 'Uspjeh!',
       warning: 'Upozorenje!',
-    }
+    },
     },
   },
 
@@ -133,6 +136,9 @@ const resources = {
       miles: 'Miles (mi)',
       enableNotifications: 'Enable Notifications',
       sendTestNotification: 'Send test notification...',
+      notificationsReminderTitle: 'It\'s time for today\'s workout!',
+      notificationsReminderBody: 'You didn\'t record any activity today. Workout and achieve daily goals!',
+      notificationTime: 'Time of Daily Reminder',
 
       home: {
         readyForWorkout: 'Ready for today\'s workout?',
@@ -228,7 +234,7 @@ const resources = {
       saveError: 'An error occurred while saving the activity.',
       success: 'Success!',
       warning: 'Warning!',
-    }
+    },
     },
   },
 };

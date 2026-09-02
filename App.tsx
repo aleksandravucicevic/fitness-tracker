@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View, LogBox } from 'react-native';
+import { ActivityIndicator, StyleSheet, useWindowDimensions, View, LogBox } from 'react-native';
 import { initDatabase } from './src/db/database';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import './src/services/i18n';
 import { SettingsService } from './src/services/settingsService';
 import i18n from './src/services/i18n';
+import { StatusBar } from 'expo-status-bar';
+import { Colors } from './src/utils/theme';
 
 LogBox.ignoreLogs([
   'expo-notifications: Android Push notifications',
@@ -14,6 +16,7 @@ LogBox.ignoreLogs([
 
 export default function App() {
   const [isDbReady, setIsDbReady] = useState(false);
+  const { width, height } = useWindowDimensions();
 
   useEffect(() => {
     async function setupDb(){
@@ -34,13 +37,15 @@ export default function App() {
   if(!isDbReady){
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#6200ee" />
+        <StatusBar style="light" backgroundColor={Colors.background} />
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     )
   }
 
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider style={{ flex: 1, backgroundColor: Colors.background }}>
+      <StatusBar key={`${width}-${height}`} style="light" backgroundColor={Colors.background} translucent={false} />
       <AppNavigator />
     </SafeAreaProvider>
   );
@@ -49,13 +54,8 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 8,
   },
 });

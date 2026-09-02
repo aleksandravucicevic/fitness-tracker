@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
   ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect,useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -27,6 +28,8 @@ export const HistoryScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('ALL');
   const navigation = useNavigation<any>();
+
+  const { width } = useWindowDimensions();
 
   const loadActivities = async () => {
     try {
@@ -94,15 +97,17 @@ export const HistoryScreen = () => {
       </View>
 
       {/* FILTERI */}
-      <View style={styles.filterChips}>
-        {['ALL', 'RUNNING', 'WALKING', 'CYCLING'].map((type) => (
-          <TouchableOpacity key={type} style={[styles.chip, selectedType === type && styles.chipActive]}
-            onPress={() => setSelectedType(type)}>
-            <Text style={[styles.chipText, selectedType === type && styles.chipTextActive]}>
-              {getActivityTypeName(type, t)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      <View style={styles.filterChipsContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={true} contentContainerStyle={styles.filterChips}>
+          {['ALL', 'RUNNING', 'WALKING', 'CYCLING'].map((type) => (
+            <TouchableOpacity key={type} style={[styles.chip, selectedType === type && styles.chipActive]}
+              onPress={() => setSelectedType(type)}>
+              <Text style={[styles.chipText, selectedType === type && styles.chipTextActive]}>
+                {getActivityTypeName(type, t)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
       {/* SADRŽAJ LISTE/TABELE */}
@@ -111,17 +116,23 @@ export const HistoryScreen = () => {
           <Text style={styles.emptyText}>{t('history.noActivitiesFound')}</Text>
         </View>
       ) : viewMode === 'list' ? (
-        <FlatList data={filteredActivities} keyExtractor={(item) => item.id!.toString()}
+        <FlatList data={filteredActivities} keyExtractor={(item) => item.id!.toString()} showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
           <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => navigation.navigate('ActivityDetail', { activity: item })}>
             <View style={styles.cardHeader}>
-              <Text style={styles.activityType}>
-                {getActivityTypeName(item.type, t)}
-              </Text>
+              <View>
+                <Text style={styles.activityType}>
+                  {getActivityTypeName(item.type, t)}
+                </Text>
 
-              <Text style={styles.dateText}>
-                {new Date(item.date).toLocaleDateString(i18n.language)}
-              </Text>
+                <Text style={styles.dateText}>
+                  {new Date(item.date).toLocaleDateString(i18n.language)}
+                </Text>
+              </View>
+
+              <TouchableOpacity style={styles.deleteButtonHeader} onPress={() => handleDelete(item.id!)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name='trash-outline' size={18} color={Colors.accent} />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.cardBody}>
@@ -141,53 +152,50 @@ export const HistoryScreen = () => {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id!)}>
-              <Ionicons name='trash-outline' size={18} color={Colors.accent} />
-            </TouchableOpacity>
           </TouchableOpacity>
           )}
         />
       ) : (
         /* ZAGLAVLJE TABELE */
-        <ScrollView horizontal style={styles.tableScrollView}>
-          <View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={true} style={styles.tableScrollView}>
+          <View style={{ minWidth: Math.max(width - 32, 480) }}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.th, {width: 90}]}>{t('history.table.type')}</Text>
-            <Text style={[styles.th, {width: 90}]}>{t('history.table.date')}</Text>
-            <Text style={[styles.th, {width: 80}]}>{t('history.table.distance')}</Text>
-            <Text style={[styles.th, {width: 80}]}>{t('history.table.duration')}</Text>
-            <Text style={[styles.th, {width: 80}]}>{t('history.table.speed')}</Text>
-            <Text style={[styles.th, {width: 50, textAlign: 'center'}]}>{t('history.table.action')}</Text>
+            <Text style={[styles.th, {flex: 1.2}]}>{t('history.table.type')}</Text>
+            <Text style={[styles.th, {flex: 1.2}]}>{t('history.table.date')}</Text>
+            <Text style={[styles.th, {flex: 1}]}>{t('history.table.distance')}</Text>
+            <Text style={[styles.th, {flex: 1}]}>{t('history.table.duration')}</Text>
+            <Text style={[styles.th, {flex: 1}]}>{t('history.table.speed')}</Text>
+            <Text style={[styles.th, {width: 40, textAlign: 'center'}]}>{t('history.table.action')}</Text>
           </View>
 
           {/* TIJELO TABELE*/}
           <FlatList data={filteredActivities} keyExtractor={(item) => item.id!.toString()}
             renderItem={({item, index}) => (
             <View style={[styles.tableRow, index % 2 === 1 && {backgroundColor: Colors.cardBackground},]}>
-              <TouchableOpacity style={{ flexDirection: 'row', flex: 1 }} activeOpacity={0.7} 
+              <TouchableOpacity style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }} activeOpacity={0.7} 
               onPress={() => navigation.navigate('ActivityDetail', {activity: item})}>
-                <Text style={[styles.td, {width: 90, fontWeight: 'bold'}]}>
+                <Text style={[styles.td, {flex: 1.2, fontWeight: 'bold'}]}>
                   {getActivityTypeName(item.type, t)}
                 </Text>
 
-                <Text style={[styles.td, {width: 90}]}>
+                <Text style={[styles.td, {flex: 1.2}]}>
                   {new Date(item.date).toLocaleDateString(i18n.language)}
                 </Text>
 
-                <Text style={[styles.td, {width: 80}]}>
-                  {formatDistance(item.duration, unitSystem)}
+                <Text style={[styles.td, {flex: 1}]}>
+                  {formatDistance(item.distance, unitSystem)}
                 </Text>
 
-                <Text style={[styles.td, {width: 80}]}>
+                <Text style={[styles.td, {flex: 1}]}>
                   {formatTime(item.duration, true)}
                 </Text>
 
-                <Text style={[styles.td, {width: 80}]}>
+                <Text style={[styles.td, {flex: 1}]}>
                   {formatSpeed(item.averageSpeed, unitSystem)}
                 </Text>
               </TouchableOpacity>
               
-              <TouchableOpacity style={{width: 50, alignItems: 'center'}}
+              <TouchableOpacity style={{width: 40, alignItems: 'center', justifyContent: 'center'}}
               onPress={() => handleDelete(item.id!)}>
                 <Ionicons name='trash-outline' size={16} color={Colors.accent} />
               </TouchableOpacity>
@@ -225,7 +233,8 @@ const styles = StyleSheet.create({
   },
   toggleBtn: { padding: 8, borderRadius: 8 },
   toggleBtnActive: { backgroundColor: Colors.primary },
-  filterChips: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  filterChipsContainer: { marginBottom: 16 },
+  filterChips: { flexDirection: 'row', gap: 8 },
   chip: {
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -244,16 +253,27 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: Colors.border,
-    position: 'relative',
   },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+  cardHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'flex-start',
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    paddingBottom: 8,
+  },
   activityType: { color: Colors.textPrimary, fontWeight: 'bold', fontSize: 16 },
-  dateText: { color: Colors.textSecondary, fontSize: 12 },
-  cardBody: { flexDirection: 'row', justifyContent: 'space-between', paddingRight: 30 },
+  dateText: { color: Colors.textSecondary, fontSize: 12, marginTop: 2 },
+  deleteButtonHeader: {
+    padding: 6,
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    borderRadius: 8,
+  },
+  cardBody: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', },
   metric: { alignItems: 'flex-start' },
   metricLabel: { color: Colors.textSecondary, fontSize: 11, marginBottom: 2 },
   metricValue: { color: Colors.primary, fontWeight: 'bold', fontSize: 14 },
-  deleteButton: { position: 'absolute', bottom: 16, right: 16, padding: 4 },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 40 },
   emptyText: { color: Colors.textSecondary, fontSize: 14 },
   tableScrollView: { flex: 1 },
@@ -264,6 +284,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderBottomWidth: 2,
     borderBottomColor: Colors.border,
+    alignItems: 'center',
   },
   th: { color: Colors.primary, fontWeight: 'bold', fontSize: 13 },
   tableRow: {

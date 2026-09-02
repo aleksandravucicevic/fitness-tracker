@@ -173,7 +173,6 @@ export const GoalsScreen = () => {
                   styles.progressBarFill,
                   {
                     width: `${Math.min((currentSteps / activeGoalSet.stepsGoal) * 100, 100)}%`,
-                    backgroundColor: '#FFB74D',
                   },
                 ]}
               />
@@ -222,7 +221,6 @@ export const GoalsScreen = () => {
                   styles.progressBarFill,
                   {
                     width: `${Math.min((currentDurationMins / activeGoalSet.durationGoalMins) * 100, 100)}%`,
-                    backgroundColor: '#4FC3F7',
                   },
                 ]}
               />

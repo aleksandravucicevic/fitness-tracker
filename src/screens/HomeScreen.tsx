@@ -107,8 +107,8 @@ export const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  content: { padding: 16 },
+  container: { flex: 1, backgroundColor: Colors.background, padding: 2 },
+  content: { padding: 16, paddingBottom: 2 },
   headerCard: {
     backgroundColor: Colors.cardBackground,
     paddingHorizontal: 20,

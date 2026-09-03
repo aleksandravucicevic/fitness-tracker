@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, useWindowDimensions, ScrollView } from 'react-native';
 import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useTracker } from '../hooks/useTracker';
@@ -33,6 +33,7 @@ export const TrackingScreen = () => {
   } = useTracker();
 
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+  const mapRef = useRef<MapView>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -44,6 +45,20 @@ export const TrackingScreen = () => {
       loadUnit();
     }, [])
   );
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if(mapRef.current && currentLocation) {
+        mapRef.current.animateCamera({
+          center: {
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
+          },
+        }, {duration: 200});
+      }
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, [isLandscape]);
 
   const handleSave = async () => {
     stopTracking();
@@ -67,8 +82,9 @@ export const TrackingScreen = () => {
   return (
     <View style={[styles.container, isLandscape && styles.containerLandscape]}>
       {/* MAPA SA RUTOM */}
-      <View style={[styles.mapContainer, isLandscape && styles.mapContainerLandscape]}>
-        <MapView style={styles.map} provider={PROVIDER_GOOGLE} showsUserLocation={true} followsUserLocation={true}
+      <View style={[isLandscape ? styles.mapContainerLandscape : styles.mapContainer]}>
+        <MapView ref={mapRef} style={styles.map} 
+        provider={PROVIDER_GOOGLE} showsUserLocation={true} followsUserLocation={true}
         region={
           currentLocation ? {
             latitude: currentLocation.latitude,
@@ -84,15 +100,16 @@ export const TrackingScreen = () => {
       </View>
 
       {/* KONTROLNI PANEL */}
-      <View style={[styles.dashboard, isLandscape && styles.dashboardLandscape]}>
-        <ScrollView contentContainerStyle={isLandscape ? styles.scrollContentLandscape : undefined} bounces={false}>
+      <View style={[isLandscape ? styles.dashboardLandscape : styles.dashboard]}>
+        <ScrollView contentContainerStyle={isLandscape ? styles.scrollContentLandscape : undefined} bounces={false}
+          showsVerticalScrollIndicator={false}>
           {/* IZBOR AKTIVNOSTI */}
           {!isTracking && (
             <View style={styles.typeSelector}>
               {(['RUNNING', 'WALKING', 'CYCLING'] as ActivityType[]).map((type) => (
-                <TouchableOpacity key={type} style={[styles.typeButton, activityType === type && styles.selectedTypeButton, ]}
+                <TouchableOpacity key={type} style={[styles.typeButton, activityType === type && styles.selectedTypeButton ]}
                 onPress={() => setActivityType(type)}>
-                  <Text style={[styles.typeText, activityType === type && styles.selectedTypeText, ]}>
+                  <Text style={[styles.typeText, activityType === type && styles.selectedTypeText ]}>
                     {getActivityTypeName(type, t)}
                   </Text>
                 </TouchableOpacity>
@@ -149,10 +166,11 @@ export const TrackingScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   containerLandscape: { flexDirection: 'row' },
-  mapContainer: { flex: 1 },
-  mapContainerLandscape: { flex: 4.5 },
+  mapContainer: { flex: 0.55, width: '100%' },
+  mapContainerLandscape: { flex: 1.5, height: '100%' },
   map: { flex: 1 },
   dashboard: {
+    flex: 0.45,
     backgroundColor: Colors.cardBackground,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -162,8 +180,9 @@ const styles = StyleSheet.create({
   },
   dashboardLandscape: {
     flex: 1,
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
+    height: '100%',
+    padding: 20,
+    backgroundColor: Colors.cardBackground,
     borderLeftWidth: 1,
     borderLeftColor: Colors.border,
     justifyContent: 'center',

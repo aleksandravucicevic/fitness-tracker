@@ -31,7 +31,7 @@ const TabNavigator = () => {
             tabBarStyle: {
                 backgroundColor: Colors.cardBackground,
                 borderTopColor: Colors.border,
-                height: 55 + insets.bottom,
+                height: 52 + insets.bottom,
                 paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
                 paddingTop: 3,
             },

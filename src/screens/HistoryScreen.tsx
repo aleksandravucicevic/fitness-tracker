@@ -29,7 +29,8 @@ export const HistoryScreen = () => {
   const [selectedType, setSelectedType] = useState<string>('ALL');
   const navigation = useNavigation<any>();
 
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
 
   const loadActivities = async () => {
     try {
@@ -116,9 +117,13 @@ export const HistoryScreen = () => {
           <Text style={styles.emptyText}>{t('history.noActivitiesFound')}</Text>
         </View>
       ) : viewMode === 'list' ? (
-        <FlatList data={filteredActivities} keyExtractor={(item) => item.id!.toString()} showsVerticalScrollIndicator={false}
+        <FlatList key={isLandscape ? 'landscape-list' : 'portrait-list'}
+          numColumns={isLandscape ? 2 : 1}
+          columnWrapperStyle={isLandscape ? { justifyContent: 'space-between' } : undefined}
+          data={filteredActivities} keyExtractor={(item) => item.id!.toString()} 
+          showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => navigation.navigate('ActivityDetail', { activity: item })}>
+          <TouchableOpacity style={[styles.card, isLandscape && { width: '49%' }]} activeOpacity={0.8} onPress={() => navigation.navigate('ActivityDetail', { activity: item })}>
             <View style={styles.cardHeader}>
               <View>
                 <Text style={styles.activityType}>
@@ -158,9 +163,9 @@ export const HistoryScreen = () => {
       ) : (
         /* ZAGLAVLJE TABELE */
         <ScrollView horizontal showsHorizontalScrollIndicator={true} style={styles.tableScrollView}>
-          <View style={{ minWidth: Math.max(width - 32, 480) }}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.th, {flex: 1.2}]}>{t('history.table.type')}</Text>
+          <View style={{ minWidth: Math.max(width - 38, 520) }}>
+          <View style={[styles.tableHeader, isLandscape && { paddingVertical: 8 }]}>
+            <Text style={[styles.th, {flex: 1.6}, isLandscape && {flex: 1.4}]}>{t('history.table.type')}</Text>
             <Text style={[styles.th, {flex: 1.2}]}>{t('history.table.date')}</Text>
             <Text style={[styles.th, {flex: 1}]}>{t('history.table.distance')}</Text>
             <Text style={[styles.th, {flex: 1}]}>{t('history.table.duration')}</Text>
@@ -210,8 +215,8 @@ export const HistoryScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background, padding: 16 },
-  headerControls: { flexDirection: 'row', gap: 10, marginBottom: 12 },
+  container: { flex: 1, backgroundColor: Colors.background, padding: 18, paddingBottom: 5 },
+  headerControls: { flexDirection: 'row', gap: 10, marginBottom: 10 },
   searchBar: {
     flex: 1,
     flexDirection: 'row',
@@ -227,13 +232,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: Colors.cardBackground,
     borderRadius: 10,
-    padding: 3,
+    padding: 2,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   toggleBtn: { padding: 8, borderRadius: 8 },
   toggleBtnActive: { backgroundColor: Colors.primary },
-  filterChipsContainer: { marginBottom: 16 },
+  filterChipsContainer: { marginBottom: 10 },
   filterChips: { flexDirection: 'row', gap: 8 },
   chip: {
     paddingVertical: 6,
@@ -249,6 +254,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.cardBackground,
     padding: 16,
+    paddingVertical: 10,
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 1,
@@ -261,7 +267,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-    paddingBottom: 8,
+    paddingBottom: 6,
   },
   activityType: { color: Colors.textPrimary, fontWeight: 'bold', fontSize: 16 },
   dateText: { color: Colors.textSecondary, fontSize: 12, marginTop: 2 },
@@ -280,7 +286,7 @@ const styles = StyleSheet.create({
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: Colors.cardBackground,
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 8,
     borderBottomWidth: 2,
     borderBottomColor: Colors.border,

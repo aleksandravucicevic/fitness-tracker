@@ -111,11 +111,12 @@ const styles = StyleSheet.create({
   content: { padding: 16 },
   headerCard: {
     backgroundColor: Colors.cardBackground,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: Colors.border,
-    marginBottom: 20,
+    marginBottom: 15,
   },
   greeting: {
     fontSize: 18,
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 24,
+    marginBottom: 15,
   },
   statCard: {
     flex: 1,

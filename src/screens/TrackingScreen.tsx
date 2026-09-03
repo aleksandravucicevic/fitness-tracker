@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import MapView, { Polyline, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, useWindowDimensions, ScrollView } from 'react-native';
+import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useTracker } from '../hooks/useTracker';
 import { useTranslation } from 'react-i18next';
 import { getActivityTypeName } from '../utils/activityUtils';
@@ -13,6 +13,8 @@ import { useFocusEffect } from '@react-navigation/native';
 
 export const TrackingScreen = () => {
   const {t, i18n} = useTranslation();
+  const {width, height} = useWindowDimensions();
+  const isLandscape = width > height;
   const {
     isTracking,
     isPaused,
@@ -63,9 +65,9 @@ export const TrackingScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isLandscape && styles.containerLandscape]}>
       {/* MAPA SA RUTOM */}
-      <View style={styles.mapContainer}>
+      <View style={[styles.mapContainer, isLandscape && styles.mapContainerLandscape]}>
         <MapView style={styles.map} provider={PROVIDER_GOOGLE} showsUserLocation={true} followsUserLocation={true}
         region={
           currentLocation ? {
@@ -82,61 +84,63 @@ export const TrackingScreen = () => {
       </View>
 
       {/* KONTROLNI PANEL */}
-      <View style={styles.dashboard}>
-        {/* IZBOR AKTIVNOSTI */}
-        {!isTracking && (
-          <View style={styles.typeSelector}>
-            {(['RUNNING', 'WALKING', 'CYCLING'] as ActivityType[]).map((type) => (
-              <TouchableOpacity key={type} style={[styles.typeButton, activityType === type && styles.selectedTypeButton, ]}
-              onPress={() => setActivityType(type)}>
-                <Text style={[styles.typeText, activityType === type && styles.selectedTypeText, ]}>
-                  {getActivityTypeName(type, t)}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
-        {/* METRIKE */}
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>{t('tracking.distance')}</Text>
-            <Text style={styles.statValue}>{formatDistance(distance, unitSystem)}</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>{t('tracking.time')}</Text>
-            <Text style={styles.statValue}>{formatTime(duration)}</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statLabel}>{t('tracking.speed')}</Text>
-            <Text style={styles.statValue}>{formatSpeed(currentSpeed, unitSystem)}</Text>
-          </View>
-        </View>
-
-        {/* DUGMAD */}
-        <View style={styles.actionContainer}>
-          {!isTracking ? (
-            <TouchableOpacity style={styles.startButton} onPress={startTracking}>
-              <Text style={styles.buttonText}>{t('tracking.start')}</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.activeControls}>
-              {isPaused ? (
-                <TouchableOpacity style={styles.resumeButton} onPress={resumeTracking}>
-                  <Text style={styles.buttonText}>{t('tracking.resume')}</Text>
+      <View style={[styles.dashboard, isLandscape && styles.dashboardLandscape]}>
+        <ScrollView contentContainerStyle={isLandscape ? styles.scrollContentLandscape : undefined} bounces={false}>
+          {/* IZBOR AKTIVNOSTI */}
+          {!isTracking && (
+            <View style={styles.typeSelector}>
+              {(['RUNNING', 'WALKING', 'CYCLING'] as ActivityType[]).map((type) => (
+                <TouchableOpacity key={type} style={[styles.typeButton, activityType === type && styles.selectedTypeButton, ]}
+                onPress={() => setActivityType(type)}>
+                  <Text style={[styles.typeText, activityType === type && styles.selectedTypeText, ]}>
+                    {getActivityTypeName(type, t)}
+                  </Text>
                 </TouchableOpacity>
-              ) : (
-                <TouchableOpacity style={styles.pauseButton} onPress={pauseTracking}>
-                  <Text style={styles.buttonText}>{t('tracking.pause')}</Text>
-                </TouchableOpacity>
-              )}
-
-              <TouchableOpacity style={styles.stopButton} onPress={handleSave}>
-                <Text style={styles.buttonText}>{t('tracking.save')}</Text>
-              </TouchableOpacity>
+              ))}
             </View>
           )}
-        </View>
+
+          {/* METRIKE */}
+          <View style={styles.statsRow}>
+            <View style={styles.statBox}>
+              <Text style={styles.statLabel}>{t('tracking.distance')}</Text>
+              <Text style={styles.statValue}>{formatDistance(distance, unitSystem)}</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statLabel}>{t('tracking.time')}</Text>
+              <Text style={styles.statValue}>{formatTime(duration)}</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statLabel}>{t('tracking.speed')}</Text>
+              <Text style={styles.statValue}>{formatSpeed(currentSpeed, unitSystem)}</Text>
+            </View>
+          </View>
+
+          {/* DUGMAD */}
+          <View style={styles.actionContainer}>
+            {!isTracking ? (
+              <TouchableOpacity style={styles.startButton} onPress={startTracking}>
+                <Text style={styles.buttonText}>{t('tracking.start')}</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.activeControls}>
+                {isPaused ? (
+                  <TouchableOpacity style={styles.resumeButton} onPress={resumeTracking}>
+                    <Text style={styles.buttonText}>{t('tracking.resume')}</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity style={styles.pauseButton} onPress={pauseTracking}>
+                    <Text style={styles.buttonText}>{t('tracking.pause')}</Text>
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity style={styles.stopButton} onPress={handleSave}>
+                  <Text style={styles.buttonText}>{t('tracking.save')}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </ScrollView>
       </View>
     </View>
   );
@@ -144,7 +148,9 @@ export const TrackingScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  containerLandscape: { flexDirection: 'row' },
   mapContainer: { flex: 1 },
+  mapContainerLandscape: { flex: 4.5 },
   map: { flex: 1 },
   dashboard: {
     backgroundColor: Colors.cardBackground,
@@ -153,6 +159,18 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
+  },
+  dashboardLandscape: {
+    flex: 1,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderLeftWidth: 1,
+    borderLeftColor: Colors.border,
+    justifyContent: 'center',
+  },
+  scrollContentLandscape: {
+    justifyContent: 'center',
+    flexGrow: 1,
   },
   typeSelector: {
     flexDirection: 'row',

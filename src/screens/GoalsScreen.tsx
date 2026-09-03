@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -19,6 +20,8 @@ import { UnitSystem } from '../services/settingsService';
 
 export const GoalsScreen = () => {
   const {t, i18n} = useTranslation();
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
   const [period, setPeriod] = useState<GoalPeriod>('daily');
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
 
@@ -41,6 +44,8 @@ export const GoalsScreen = () => {
     if(goalsSet.distanceGoalKm) {
       const displayDist = currentUnit === 'imperial' ? kmToMiles(goalsSet.distanceGoalKm) : goalsSet.distanceGoalKm;
       setDistanceInput(displayDist.toFixed(1));
+    } else {
+      setDistanceInput('');
     }
     
     setDurationInput(goalsSet.durationGoalMins ? goalsSet.durationGoalMins.toString() : '');
@@ -148,144 +153,152 @@ export const GoalsScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* NAPREDAK */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>{t('goals.achievedFor', { period: periodLabel })}</Text>
+      <View style={isLandscape ? styles.landscapeRow : undefined}>
+        {/* NAPREDAK */}
+        <View style={[styles.card, isLandscape && styles.landscapeCard]}>
+          <Text style={styles.cardTitle}>{t('goals.achievedFor', { period: periodLabel })}</Text>
 
-        {!activeGoalSet.stepsGoal && !activeGoalSet.distanceGoalKm && !activeGoalSet.durationGoalMins && (
-          <Text style={styles.noGoalsText}>{t('goals.noGoalsSet')}</Text>
-        )}
+          {!activeGoalSet.stepsGoal && !activeGoalSet.distanceGoalKm && !activeGoalSet.durationGoalMins && (
+            <Text style={styles.noGoalsText}>{t('goals.noGoalsSet')}</Text>
+          )}
 
-        {/* KORACI */}
-        {activeGoalSet.stepsGoal && (
-          <View style={styles.progressSection}>
-            <View style={styles.progressHeader}>
-              <Text style={styles.label}>
-                {t('goals.steps')} ({currentSteps} / {activeGoalSet.stepsGoal})
-              </Text>
-              <Text style={styles.percentText}>
-                {Math.min((currentSteps / activeGoalSet.stepsGoal) * 100, 100).toFixed(0)}%
-              </Text>
+          {/* KORACI */}
+          {activeGoalSet.stepsGoal && (
+            <View style={styles.progressSection}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.label}>
+                  {t('goals.steps')} ({currentSteps} / {activeGoalSet.stepsGoal})
+                </Text>
+                <Text style={styles.percentText}>
+                  {Math.min((currentSteps / activeGoalSet.stepsGoal) * 100, 100).toFixed(0)}%
+                </Text>
+              </View>
+              <View style={styles.progressBarBackground}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: `${Math.min((currentSteps / activeGoalSet.stepsGoal) * 100, 100)}%`,
+                    },
+                  ]}
+                />
+              </View>
             </View>
-            <View style={styles.progressBarBackground}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  {
-                    width: `${Math.min((currentSteps / activeGoalSet.stepsGoal) * 100, 100)}%`,
-                  },
-                ]}
-              />
-            </View>
-          </View>
-        )}
+          )}
 
-        {/* DISTANCA */}
-        {activeGoalSet.distanceGoalKm && (
-          <View style={styles.progressSection}>
-            <View style={styles.progressHeader}>
-              <Text style={styles.label}>
-                {t('goals.distance')} ({formatDistance(currentDistanceMeters, unitSystem)} / {formatDistance(targetDistanceMeters, unitSystem)})
-              </Text>
-              <Text style={styles.percentText}>
-                {distanceProgressPercent.toFixed(0)}%
-              </Text>
+          {/* DISTANCA */}
+          {activeGoalSet.distanceGoalKm && (
+            <View style={styles.progressSection}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.label}>
+                  {t('goals.distance')} ({formatDistance(currentDistanceMeters, unitSystem)} / {formatDistance(targetDistanceMeters, unitSystem)})
+                </Text>
+                <Text style={styles.percentText}>
+                  {distanceProgressPercent.toFixed(0)}%
+                </Text>
+              </View>
+              <View style={styles.progressBarBackground}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: `${distanceProgressPercent}%`,
+                    },
+                  ]}
+                />
+              </View>
             </View>
-            <View style={styles.progressBarBackground}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  {
-                    width: `${distanceProgressPercent}%`,
-                  },
-                ]}
-              />
+          )}
+
+          {/* VRIJEME */}
+          {activeGoalSet.durationGoalMins && (
+            <View style={styles.progressSection}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.label}>
+                  {t('goals.time')} ({currentDurationMins} / {activeGoalSet.durationGoalMins} min)
+                </Text>
+                <Text style={styles.percentText}>
+                  {Math.min((currentDurationMins / activeGoalSet.durationGoalMins) * 100, 100).toFixed(0)}%
+                </Text>
+              </View>
+              <View style={styles.progressBarBackground}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      width: `${Math.min((currentDurationMins / activeGoalSet.durationGoalMins) * 100, 100)}%`,
+                    },
+                  ]}
+                />
+              </View>
             </View>
-          </View>
-        )}
-
-        {/* VRIJEME */}
-        {activeGoalSet.durationGoalMins && (
-          <View style={styles.progressSection}>
-            <View style={styles.progressHeader}>
-              <Text style={styles.label}>
-                {t('goals.time')} ({currentDurationMins} / {activeGoalSet.durationGoalMins} min)
-              </Text>
-              <Text style={styles.percentText}>
-                {Math.min((currentDurationMins / activeGoalSet.durationGoalMins) * 100, 100).toFixed(0)}%
-              </Text>
-            </View>
-            <View style={styles.progressBarBackground}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  {
-                    width: `${Math.min((currentDurationMins / activeGoalSet.durationGoalMins) * 100, 100)}%`,
-                  },
-                ]}
-              />
-            </View>
-          </View>
-        )}
-      </View>
-
-      {/* PODEŠAVANJE CILJEVA */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>{t('goals.setGoalsTitle', { period: period === 'daily' ? t('goals.daily') : t('goals.weekly') })}</Text>
-
-        <View style={styles.rowInputs}>
-          <View style={styles.inputCol}>
-            <Text style={styles.inputLabel}>{t('goals.timeInMin')}:</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={durationInput}
-              onChangeText={setDurationInput}
-              placeholder="npr. 150"
-              placeholderTextColor={Colors.textSecondary}
-            />
-          </View>
-
-          <View style={styles.inputCol}>
-            <Text style={styles.inputLabel}>{t('goals.distanceWithUnit', { unit: unitSystem === 'imperial' ? 'mi' : 'km' })}:</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={distanceInput}
-              onChangeText={setDistanceInput}
-              placeholder={unitSystem === 'imperial' ? 'npr. 12.5' : 'npr. 20'}
-              placeholderTextColor={Colors.textSecondary}
-            />
-          </View>
+          )}
         </View>
 
-        <Text style={styles.inputLabel}>{t('goals.stepCount')}:</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={stepsInput}
-              onChangeText={setStepsInput}
-              placeholder="npr. 10000"
-              placeholderTextColor={Colors.textSecondary}
-            />
+        {/* PODEŠAVANJE CILJEVA */}
+        <View style={[styles.card, isLandscape && styles.landscapeCard]}>
+          <Text style={styles.cardTitle}>{t('goals.setGoalsTitle', { period: period === 'daily' ? t('goals.daily') : t('goals.weekly') })}</Text>
 
-        <TouchableOpacity style={styles.saveButton} onPress={handleSaveGoals}>
-          <Ionicons name="save-outline" size={20} color="#000" />
-          <Text style={styles.saveButtonText}>{t('goals.saveGoals')}</Text>
-        </TouchableOpacity>
+          <View style={styles.rowInputs}>
+            <View style={styles.inputCol}>
+              <Text style={styles.inputLabel}>{t('goals.timeInMin')}:</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={durationInput}
+                onChangeText={setDurationInput}
+                placeholder="npr. 150"
+                placeholderTextColor={Colors.textSecondary}
+              />
+            </View>
+
+            <View style={styles.inputCol}>
+              <Text style={styles.inputLabel}>{t('goals.distanceWithUnit', { unit: unitSystem === 'imperial' ? 'mi' : 'km' })}:</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="numeric"
+                value={distanceInput}
+                onChangeText={setDistanceInput}
+                placeholder={unitSystem === 'imperial' ? 'npr. 12.5' : 'npr. 20'}
+                placeholderTextColor={Colors.textSecondary}
+              />
+            </View>
+          </View>
+
+          <View style={styles.rowInputs}>
+            <View style={styles.inputCol}>
+              <Text style={styles.inputLabel}>{t('goals.stepCount')}:</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    value={stepsInput}
+                    onChangeText={setStepsInput}
+                    placeholder="npr. 10000"
+                    placeholderTextColor={Colors.textSecondary}
+                  />
+            </View>
+
+            <View style={[styles.inputCol, {marginTop: 20}]}>
+              <TouchableOpacity style={styles.saveButton} onPress={handleSaveGoals}>
+                <Ionicons name="save-outline" size={20} color="#000" />
+                <Text style={styles.saveButtonText}>{t('goals.saveGoals')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background, padding: 16 },
+  container: { flex: 1, backgroundColor: Colors.background, padding: 16, paddingTop: 8 },
   periodToggle: {
     flexDirection: 'row',
     backgroundColor: Colors.cardBackground,
     borderRadius: 12,
     padding: 4,
-    marginBottom: 16,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -293,11 +306,14 @@ const styles = StyleSheet.create({
   periodBtnActive: { backgroundColor: Colors.primary },
   periodBtnText: { color: Colors.textSecondary, fontWeight: '600', fontSize: 13 },
   periodBtnTextActive: { color: '#000', fontWeight: 'bold' },
+  landscapeRow: { flexDirection: 'row', gap: 16 },
+  landscapeCard: { flex: 1, marginBottom: -16 },
   card: {
     backgroundColor: Colors.cardBackground,
     padding: 16,
+    paddingBottom: 6,
     borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -326,8 +342,10 @@ const styles = StyleSheet.create({
   saveButton: {
     flexDirection: 'row',
     backgroundColor: Colors.primary,
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,

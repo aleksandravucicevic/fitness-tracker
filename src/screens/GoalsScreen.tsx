@@ -307,10 +307,11 @@ const styles = StyleSheet.create({
   periodBtnText: { color: Colors.textSecondary, fontWeight: '600', fontSize: 13 },
   periodBtnTextActive: { color: '#000', fontWeight: 'bold' },
   landscapeRow: { flexDirection: 'row', gap: 16 },
-  landscapeCard: { flex: 1, marginBottom: -16 },
+  landscapeCard: { flex: 1, marginVertical: 0, marginBottom: -16 },
   card: {
     backgroundColor: Colors.cardBackground,
     padding: 16,
+    marginVertical: 6,
     paddingBottom: 6,
     borderRadius: 12,
     marginBottom: 12,

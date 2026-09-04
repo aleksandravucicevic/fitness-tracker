@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { BarChart } from 'react-native-chart-kit';
@@ -19,19 +19,21 @@ import { Activity } from '../models/Activity';
 import { formatDistance, formatSpeed, formatTime, getUnitSystem, metersToMiles } from '../utils/unitFormatter';
 import { UnitSystem } from '../services/settingsService';
 
-const screenWidth = Dimensions.get('window').width;
-
 export const StatsScreen = () => {
   const {t, i18n} = useTranslation();
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
+  
   const [periodDays, setPeriodDays] = useState<number>(7);
   const [activityType, setActivityType] = useState<string>('ALL');
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
   const [stats, setStats] = useState<ActivityStats>({ totalDistance: 0, totalDuration: 0, totalCount: 0, avgSpeed: 0});
 
-  const [chartData, setChartData] = useState<{labels: string[]; data: number[]; unit: string }>({
+  const [chartData, setChartData] = useState<{labels: string[]; data: number[]; unit: string; periodLabelKey: string; }>({
     labels: ['-'],
     data: [0],
     unit: 'km',
+    periodLabelKey: 'stats.periodDay',
   });
 
   const loadData = async () => {
@@ -88,13 +90,29 @@ export const StatsScreen = () => {
         data.push(toChartUnit(totalMetersForDay));
       }
 
-      setChartData({labels, data, unit: unitLabel});
-    } else {
+      setChartData({labels, data, unit: unitLabel,periodLabelKey: 'stats.periodDay'});
+    } else if (days === 30){
       const labels = ['P1', 'P2', 'P3', 'P4'];
-      const m1 = filtered.slice(0, 2).reduce((s, a) => s + a.distance, 0);
-      const m2 = filtered.slice(2, 4).reduce((s, a) => s + a.distance, 0);
-      const m3 = filtered.slice(4, 6).reduce((s, a) => s + a.distance, 0);
-      const m4 = filtered.slice(6).reduce((s, a) => s + a.distance, 0);
+      const now = new Date();
+
+      const p1 = filtered.filter((a) => (now.getTime() - new Date(a.date).getTime()) / (1000 * 3600 * 24) <= 7);
+      const p2 = filtered.filter((a) => {
+        const diff = (now.getTime() - new Date(a.date).getTime()) / (1000 * 3600 * 24);
+        return diff > 7 && diff <= 14;
+      });
+      const p3 = filtered.filter((a) => {
+        const diff = (now.getTime() - new Date(a.date).getTime()) / (1000 * 3600 * 24);
+        return diff > 14 && diff <= 21;
+      });
+      const p4 = filtered.filter((a) => {
+        const diff = (now.getTime() - new Date(a.date).getTime()) / (1000 * 3600 * 24);
+        return diff > 21;
+      });
+
+      const m1 = p1.reduce((s, a) => s + a.distance, 0);
+      const m2 = p2.reduce((s, a) => s + a.distance, 0);
+      const m3 = p3.reduce((s, a) => s + a.distance, 0);
+      const m4 = p4.reduce((s, a) => s + a.distance, 0);
 
       const data = [
         toChartUnit(m1),
@@ -103,9 +121,43 @@ export const StatsScreen = () => {
         toChartUnit(m4),
       ];
 
-      setChartData({labels, data, unit: unitLabel});
+      setChartData({labels, data, unit: unitLabel, periodLabelKey: 'stats.periodQuarter'});
+    } else {
+      const labels = ['P1', 'P2', 'P3', 'P4'];
+      const now = new Date();
+
+      const p1 = filtered.filter((a) => (now.getTime() - new Date(a.date).getTime()) / (1000 * 3600 * 24) <= 91);
+      const p2 = filtered.filter((a) => {
+        const diff = (now.getTime() - new Date(a.date).getTime()) / (1000 * 3600 * 24);
+        return diff > 91 && diff <= 182;
+      });
+      const p3 = filtered.filter((a) => {
+        const diff = (now.getTime() - new Date(a.date).getTime()) / (1000 * 3600 * 24);
+        return diff > 182 && diff <= 273;
+      });
+      const p4 = filtered.filter((a) => {
+        const diff = (now.getTime() - new Date(a.date).getTime()) / (1000 * 3600 * 24);
+        return diff > 273;
+      });
+
+      const m1 = p1.reduce((s, a) => s + a.distance, 0);
+      const m2 = p2.reduce((s, a) => s + a.distance, 0);
+      const m3 = p3.reduce((s, a) => s + a.distance, 0);
+      const m4 = p4.reduce((s, a) => s + a.distance, 0);
+
+      const data = [
+        toChartUnit(m1),
+        toChartUnit(m2),
+        toChartUnit(m3),
+        toChartUnit(m4),
+      ];
+
+      setChartData({labels, data, unit: unitLabel, periodLabelKey: 'stats.periodQuarter'});
     }
   };
+
+  const computedChartWidth = Math.max(width - 64, 280);
+  const computedHeight = isLandscape ? 160 : 220;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
@@ -138,8 +190,8 @@ export const StatsScreen = () => {
       </View>
 
       {/* METRIKE */}
-      <View style={styles.statsGrid}>
-        <View style={styles.statCard}>
+      <View style={[styles.statsGrid, isLandscape && styles.landscapeStatsGrid]}>
+        <View style={[styles.statCard, isLandscape && styles.landscapeStatCard]}>
           <Ionicons name='navigate-outline' size={24} color={Colors.primary} />
           <Text style={styles.statValue}>
             {formatDistance(stats.totalDistance, unitSystem)}
@@ -147,19 +199,19 @@ export const StatsScreen = () => {
           <Text style={styles.statLabel}>{t('stats.totalDistance')}</Text>
         </View>
 
-        <View style={styles.statCard}>
+        <View style={[styles.statCard, isLandscape && styles.landscapeStatCard]}>
           <Ionicons name='time-outline' size={24} color={Colors.primary} />
           <Text style={styles.statValue}>{formatTime(stats.totalDuration)}</Text>
           <Text style={styles.statLabel}>{t('stats.totalTime')}</Text>
         </View>
 
-        <View style={styles.statCard}>
+        <View style={[styles.statCard, isLandscape && styles.landscapeStatCard]}>
           <Ionicons name='fitness-outline' size={24} color={Colors.primary} />
           <Text style={styles.statValue}>{stats.totalCount}</Text>
           <Text style={styles.statLabel}>{t('stats.activityCount')}</Text>
         </View>
 
-        <View style={styles.statCard}>
+        <View style={[styles.statCard, isLandscape && styles.landscapeStatCard]}>
           <Ionicons name='speedometer-outline' size={24} color={Colors.primary} />
           <Text style={styles.statValue}>
             {formatSpeed(stats.avgSpeed || 0, unitSystem)}
@@ -169,11 +221,11 @@ export const StatsScreen = () => {
       </View>
 
       {/* GRAFIKON AKTIVNOSTI */}
-      <View style={styles.chartCard}>
-        <Text style={styles.chartTitle}>{t('stats.chartTitle', {unit: chartData.unit})}</Text>
+      <View style={[styles.chartCard, isLandscape && {paddingTop: 11, paddingBottom: 13}]}>
+        <Text style={styles.chartTitle}>{t('stats.chartTitle', {period: t(chartData.periodLabelKey), unit: chartData.unit})}</Text>
         <BarChart data={{labels: chartData.labels, datasets: [{ data: chartData.data.length > 0 ? chartData.data : [0] }],}}
-                  width={screenWidth - 48}
-                  height={220}
+                  width={computedChartWidth}
+                  height={computedHeight}
                   yAxisLabel=''
                   yAxisSuffix={chartData.unit}
                   chartConfig={{
@@ -208,7 +260,7 @@ const styles = StyleSheet.create({
   periodBtnActive: { backgroundColor: Colors.primary },
   periodBtnText: { color: Colors.textSecondary, fontWeight: '600', fontSize: 13 },
   periodBtnTextActive: { color: '#000', fontWeight: 'bold' },
-  filterChips: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  filterChips: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   chip: {
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -221,6 +273,10 @@ const styles = StyleSheet.create({
   chipText: { color: Colors.textSecondary, fontSize: 12, fontWeight: '600' },
   chipTextActive: { color: '#000', fontWeight: 'bold' },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
+  landscapeStatsGrid: {
+    flexWrap: 'nowrap',
+    justifyContent: 'space-between',
+  },
   statCard: {
     width: '48%',
     backgroundColor: Colors.cardBackground,
@@ -229,11 +285,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
+  landscapeStatCard: {
+    width: '23.5%',
+    padding: 12,
+  },
   statValue: { fontSize: 20, fontWeight: 'bold', color: Colors.textPrimary, marginTop: 8 },
   statLabel: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   chartCard: {
     backgroundColor: Colors.cardBackground,
     padding: 16,
+    paddingBottom: 8,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.border,

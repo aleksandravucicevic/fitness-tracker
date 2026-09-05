@@ -1,7 +1,10 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import { SettingsService } from './settingsService';
-import { useTranslation } from 'react-i18next';
+import i18n from 'i18next';
+
+const isExpoGo = Constants.appOwnership === 'expo';
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -25,19 +28,22 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
         return false;
 
     if(Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('default', {
-            name: 'default',
-            importance: Notifications.AndroidImportance.MAX,
-            vibrationPattern: [0, 250, 250, 250],
-            lightColor: '#00E676',
-        });
+        try {
+            await Notifications.setNotificationChannelAsync('default', {
+                name: 'default',
+                importance: Notifications.AndroidImportance.MAX,
+                vibrationPattern: [0, 250, 250, 250],
+                lightColor: '#00E676',
+            });
+        } catch (error) {
+            console.log('Greška postavljanja nativnog push kanala unutar Expo Go.');
+        }
     }
 
     return true;
 };
 
 export const scheduleDailyReminder = async (lastActivityDate?: Date | null) => {
-    const {t, i18n} = useTranslation();
     const isEnabled = await SettingsService.getNotificationEnabled();
     await Notifications.cancelAllScheduledNotificationsAsync();
 
@@ -63,8 +69,8 @@ export const scheduleDailyReminder = async (lastActivityDate?: Date | null) => {
 
     await Notifications.scheduleNotificationAsync({
         content: {
-            title: t('notificationsReminderTitle'),
-            body: t('notificationsReminderBody'),
+            title: i18n.t('notificationsReminderTitle'),
+            body: i18n.t('notificationsReminderBody'),
             sound: true,
         },
         trigger: {
@@ -84,12 +90,12 @@ export const sendInstantNotification = async () => {
 
     await Notifications.scheduleNotificationAsync({
         content: {
-            title: 'Test podsjetnik!',
-            body: 'Notifikacije uspješno dodane!',
+            title: i18n.t('notificationsTestTitle'),
+            body: i18n.t('notificationsTestBody'),
         },
         trigger: {
         type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: 10, // 10 sekundi
+        seconds: 5, // 5 sekundi delay
         repeats: false,
         },
     });

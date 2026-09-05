@@ -65,12 +65,6 @@ export const TrackingScreen = () => {
 
   const handleStart = async () => {
     const started = await startTracking();
-    if(!started) {
-      Alert.alert(t('tracking.permissionDeniedTitle'), t('tracking.permissionDeniedMessage'), [
-        { text: t('tracking.enterManually'), onPress: () => navigation.navigate('ManualActivity') },
-        { text: t('tracking.cancel'), style: 'cancel' },
-      ]);
-    }
   };
 
   const handleSave = async () => {

@@ -66,9 +66,17 @@ export const HistoryScreen = () => {
 
   const filteredActivities = activities.filter((item) => {
     const matchesType = selectedType === 'ALL' || item.type === selectedType;
-    const matchesSearch = item.type.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          getActivityTypeName(item.type, t).toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          new Date(item.date).toLocaleDateString('sr-RS').includes(searchQuery);
+
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return matchesType;
+
+    const translatedName = getActivityTypeName(item.type, t).toLowerCase();
+    const formattedDate = new Date(item.date).toLocaleDateString(i18n.language).toLowerCase();
+    const rawDate = item.date ? item.date.toString().toLowerCase() : '';
+
+    const matchesSearch = translatedName.includes(query) ||
+                          formattedDate.includes(query) ||
+                          rawDate.includes(query);
     return matchesType && matchesSearch;
   });
 
@@ -80,7 +88,12 @@ export const HistoryScreen = () => {
         <View style={styles.searchBar}>
           <Ionicons name='search-outline' size={18} color={Colors.textSecondary} />
           <TextInput style={styles.searchInput} placeholder={t('history.searchPlaceholder')}
-                    placeholderTextColor={Colors.textSecondary} value={searchQuery} onChangeText={setSearchQuery} />
+                    placeholderTextColor={Colors.textSecondary} value={searchQuery} onChangeText={setSearchQuery} autoCorrect={false} />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="close-circle" size={18} color={Colors.textSecondary} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* LIST/TABLE */}

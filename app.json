@@ -16,7 +16,13 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.fitnesstracker",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCRPCGTEkKqMLCBfhycfejMQx9AT-fa7q0"
+        }
+      }
     },
     "androidStatusBar": {
       "barStyle": "light-content",
@@ -29,6 +35,7 @@
     "plugins": [
       "expo-sqlite",
       "expo-localization",
+      "expo-status-bar"
     ]
   }
 }

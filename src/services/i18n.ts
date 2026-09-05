@@ -21,6 +21,8 @@ const resources = {
       notificationsReminderTitle: 'Vrijeme je za današnji trening!',
       notificationsReminderBody: 'Još niste zabilježili aktivnost danas. Odradite trening i ostvarite dnevne ciljeve!',
       notificationTime: 'Vrijeme dnevnog podsjetnika',
+      notificationsTestTitle: 'Test Notifikacija',
+      notificationsTestBody: 'Poslana test notifikacija!',
 
       picker: {
         cancel: 'Otkaži',
@@ -136,6 +138,8 @@ const resources = {
       cancel: 'Otkaži',
       noPermissionMessage: 'Aktivnost nije sačuvana jer nije data dozvola za pristup lokaciji.',
       notEnoughGpsData: 'Nije zabilježeno dovoljno GPS podataka za ovu aktivnost.',
+      gpsDisabledTitle: 'GPS je isključen',
+      gpsDisabledMessage: 'Za praćenje aktivnosti neophodno je uključiti lokaciju na telefonu.'
     },
     manual: {
       title: 'Ručni unos aktivnosti',
@@ -177,6 +181,8 @@ const resources = {
       notificationsReminderTitle: 'It\'s time for today\'s workout!',
       notificationsReminderBody: 'You didn\'t record any activity today. Workout and achieve daily goals!',
       notificationTime: 'Time of Daily Reminder',
+      notificationsTestTitle: 'Test Notification',
+      notificationsTestBody: 'A Test Notification Sent!',
 
       picker: {
         cancel: 'Cancel',
@@ -292,6 +298,8 @@ const resources = {
       cancel: 'Cancel',
       noPermissionMessage: 'The activity was not saved because location access was not granted.',
       notEnoughGpsData: 'Not enough GPS data was recorded for this activity.',
+      gpsDisabledTitle: 'GPS is Off',
+      gpsDisabledMessage: 'For activity tracking you need to turn on the location on your phone.'
     },
     manual: {
       title: 'Manual Activity Entry',

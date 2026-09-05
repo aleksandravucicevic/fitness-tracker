@@ -1,8 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import * as Location from 'expo-location';
 import { LocationPoint, ActivityType } from '../models/Activity';
+import { Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 
 const MAX_ACCEPTABLE_ACCURACY = 20;
+const MIN_DISTANCE_TO_COUNT = 0.5;
 const MAX_REALISTIC_SPEED_MS = 12;
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -12,13 +16,15 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
     const deltaF = ((lat2 - lat1) * Math.PI) / 180;
     const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
 
-    const a = Math.sin(deltaF / 2) * Math.sin(deltaF / 2) + Math.cos(f1) * Math.cos(f2) * Math.sin(deltaLambda / 2);
+    const a = Math.sin(deltaF / 2) * Math.sin(deltaF / 2) + Math.cos(f1) * Math.cos(f2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
     return R * c;
 };
 
 export const useTracker = () => {
+    const {t, i18n} = useTranslation();
+    const navigation = useNavigation<any>();
     const [isTracking, setIsTracking] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
     const [activityType, setActivityType] = useState<ActivityType>('RUNNING');
@@ -51,12 +57,37 @@ export const useTracker = () => {
     const startTracking = async (): Promise<boolean> => {
         const { status } = await Location.requestForegroundPermissionsAsync();
         const isGranted = status === 'granted';
-
         setHasLocationPermission(isGranted);
+        if(!isGranted) {
+            Alert.alert(t('tracking.permissionDeniedTitle'), t('tracking.permissionDeniedMessage'), [
+                { text: t('tracking.enterManually'), onPress: () => navigation.navigate('ManualActivity') },
+                { text: t('tracking.cancel'), style: 'cancel' },
+            ]);
+        }
+      
+        let servicesEnabled = await Location.hasServicesEnabledAsync();
+        if (!servicesEnabled) {
+            try {
+                await Location.enableNetworkProviderAsync();
+                await new Promise((resolve) => setTimeout(resolve, 600));
+                servicesEnabled = await Location.hasServicesEnabledAsync();
+            } catch (error) {
+                servicesEnabled = false;
+            }
+        }
 
-        if(!isGranted)
+        if (!servicesEnabled) {
+            Alert.alert(
+                t('tracking.gpsDisabledTitle'),
+                t('tracking.gpsDisabledMessage'),
+                [
+                    { text: t('tracking.enterManually'), onPress: () => navigation.navigate('ManualActivity') },
+                    { text: t('tracking.cancel'), style: 'cancel' },
+                ]
+            );
             return false;
-
+        }
+        
         setDuration(0);
         setDistance(0);
         setRoute([]);
@@ -66,15 +97,17 @@ export const useTracker = () => {
         try {
             const initial = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.High});
             
-            const initialPoint: LocationPoint = {
-                latitude: initial.coords.latitude,
-                longitude: initial.coords.longitude,
-                altitude: initial.coords.altitude,
-                speed: initial.coords.speed,
-                timestamp: initial.timestamp,
-            };
-            setCurrentLocation(initialPoint);
-            setRoute([initialPoint]);
+            if (!initial.coords.accuracy || initial.coords.accuracy <= MAX_ACCEPTABLE_ACCURACY) {
+                const initialPoint: LocationPoint = {
+                    latitude: initial.coords.latitude,
+                    longitude: initial.coords.longitude,
+                    altitude: initial.coords.altitude,
+                    speed: initial.coords.speed,
+                    timestamp: initial.timestamp,
+                };
+                setCurrentLocation(initialPoint);
+                setRoute([initialPoint]);
+            }
         } catch (error) {
             console.warn('Nije moguće dobiti početnu lokaciju odmah:', error);
         }
@@ -82,10 +115,12 @@ export const useTracker = () => {
         locationSubscription.current = await Location.watchPositionAsync(
             {
                 accuracy: Location.Accuracy.High,
-                timeInterval: 2000,
+                timeInterval: 1000,
                 distanceInterval: 1,
             },
             (location) => {
+                if (isPaused) return;
+
                 if (location.coords.accuracy != null && location.coords.accuracy > MAX_ACCEPTABLE_ACCURACY)
                     return;
 
@@ -107,10 +142,10 @@ export const useTracker = () => {
                         const timeDeltaSec = (newPoint.timestamp - lastPoint.timestamp) / 1000;
                         const impliedSpeed = timeDeltaSec > 0 ? addedDistance / timeDeltaSec : 0;
 
-                        if(addedDistance > 1 && impliedSpeed > MAX_REALISTIC_SPEED_MS) 
+                        if(addedDistance > MIN_DISTANCE_TO_COUNT && impliedSpeed > MAX_REALISTIC_SPEED_MS) 
                             return prevRoute;
 
-                        if(addedDistance > 1)
+                        if(addedDistance > MIN_DISTANCE_TO_COUNT)
                             setDistance((prevDist) => prevDist + addedDistance);
                     }
 

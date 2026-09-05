@@ -53,6 +53,11 @@ export const HomeScreen = () => {
             <Ionicons name='play-circle' size={28} color='#000' />
             <Text style={styles.startButtonText}>{t('home.startNewWorkout')}</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity style={styles.manualButton} activeOpacity={0.8} onPress={() => navigation.navigate('ManualActivity')}>
+            <Ionicons name='create-outline' size={20} color={Colors.primary} />
+            <Text style={styles.manualButtonText}>{t('home.enterManually')}</Text>
+          </TouchableOpacity>
         </View>
 
         {/* REZIME AKTIVNOSTI */}
@@ -137,6 +142,23 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: 'bold',
     fontSize: 15,
+  },
+  manualButton: {
+    backgroundColor: 'transparent',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 30,
+    marginTop: 10,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  manualButtonText: {
+    color: Colors.primary,
+    fontWeight: '600',
+    fontSize: 14,
   },
   sectionTitle: {
     fontSize: 16,

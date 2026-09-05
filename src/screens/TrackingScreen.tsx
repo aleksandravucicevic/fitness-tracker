@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, useWindowDimensions, S
 import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useTracker } from '../hooks/useTracker';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 import { getActivityTypeName } from '../utils/activityUtils';
 import { Colors } from '../utils/theme';
 import { saveActivity } from '../db/activityRepository';
@@ -15,6 +16,7 @@ export const TrackingScreen = () => {
   const {t, i18n} = useTranslation();
   const {width, height} = useWindowDimensions();
   const isLandscape = width > height;
+  const navigation = useNavigation<any>();
   const {
     isTracking,
     isPaused,
@@ -26,6 +28,7 @@ export const TrackingScreen = () => {
     currentSpeed,
     route,
     currentLocation,
+    hasLocationPermission,
     startTracking,
     pauseTracking,
     resumeTracking,
@@ -60,8 +63,23 @@ export const TrackingScreen = () => {
     return () => clearTimeout(timeout);
   }, [isLandscape]);
 
+  const handleStart = async () => {
+    const started = await startTracking();
+    if(!started) {
+      Alert.alert(t('tracking.permissionDeniedTitle'), t('tracking.permissionDeniedMessage'), [
+        { text: t('tracking.enterManually'), onPress: () => navigation.navigate('ManualActivity') },
+        { text: t('tracking.cancel'), style: 'cancel' },
+      ]);
+    }
+  };
+
   const handleSave = async () => {
     stopTracking();
+
+    if (route.length < 2) {
+      Alert.alert(t('tracking.warning'), hasLocationPermission === false ? t('tracking.noPermissionMessage') : t('tracking.notEnoughGpsData'));
+      return;
+    }
 
     const avgSpeed = duration > 0 ? (distance / 1000) / (duration / 3600) : 0;
 
@@ -75,7 +93,7 @@ export const TrackingScreen = () => {
       Alert.alert(t('tracking.success'), t('tracking.savedSuccessfully'));
     } catch (error) {
       console.error(error);
-      Alert.alert(t('tracking.success'), t('tracking.saveError'));
+      Alert.alert(t('tracking.warning'), t('tracking.saveError'));
     }
   };
 
@@ -125,7 +143,7 @@ export const TrackingScreen = () => {
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statLabel}>{t('tracking.time')}</Text>
-              <Text style={styles.statValue}>{formatTime(duration)}</Text>
+              <Text style={styles.statValue}>{formatTime(duration, true)}</Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statLabel}>{t('tracking.speed')}</Text>
@@ -136,7 +154,7 @@ export const TrackingScreen = () => {
           {/* DUGMAD */}
           <View style={styles.actionContainer}>
             {!isTracking ? (
-              <TouchableOpacity style={styles.startButton} onPress={startTracking}>
+              <TouchableOpacity style={styles.startButton} onPress={handleStart}>
                 <Text style={styles.buttonText}>{t('tracking.start')}</Text>
               </TouchableOpacity>
             ) : (

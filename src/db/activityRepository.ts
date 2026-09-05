@@ -37,6 +37,11 @@ export interface ActivityStats {
     avgSpeed: number;
 }
 
+export interface ActivityStatsBreakdown {
+    overall: ActivityStats;
+    byType: Record<string, ActivityStats>;
+}
+
 export const getActivityStats = async (type: string = 'ALL', periodDays: number = 30): Promise<ActivityStats> => {
     const db = await getDbConnection();
 
@@ -70,4 +75,46 @@ export const getActivityStats = async (type: string = 'ALL', periodDays: number 
             avgSpeed: 0,
         }
     );
+};
+
+export const getActivityStatsBreakdown = async (periodDays: number = 30): Promise<ActivityStatsBreakdown> => {
+    const db = await getDbConnection();
+
+    const dateThreshold = new Date();
+    dateThreshold.setHours(0, 0, 0, 0);
+    if(periodDays > 1)
+        dateThreshold.setDate(dateThreshold.getDate() - (periodDays - 1));
+
+    const isoDate = dateThreshold.toISOString();
+
+    const rows = await db.getAllAsync<ActivityStats & { type: string }>(
+        `SELECT type,
+            COALESCE(SUM(distance), 0) AS totalDistance,
+            COALESCE(SUM(duration), 0) AS totalDuration,
+            COUNT(id) AS totalCount,
+            COALESCE(AVG(averageSpeed), 0) AS avgSpeed
+        FROM activities
+        WHERE date >= ?
+        GROUP BY type;`,
+        [isoDate]
+    );
+
+    const byType: Record<string, ActivityStats> = {};
+    const overall: ActivityStats = { totalDistance: 0, totalDuration: 0, totalCount: 0, avgSpeed: 0 };
+
+    let weightedSpeedSum = 0;
+
+    for(const row of rows) {
+        const { type, ...stats } = row;
+        byType[type] = stats;
+
+        overall.totalDistance += stats.totalDistance;
+        overall.totalDuration += stats.totalDuration;
+        overall.totalCount += stats.totalCount;
+        weightedSpeedSum += stats.avgSpeed * stats.totalCount;
+    }
+
+    overall.avgSpeed = overall.totalCount > 0 ? weightedSpeedSum / overall.totalCount : 0;
+
+    return { overall, byType };
 };

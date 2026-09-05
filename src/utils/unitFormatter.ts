@@ -27,6 +27,11 @@ export const formatDistance = (meters: number, unitSystem: UnitSystem = 'metric'
         const miles = metersToMiles(meters);
         return `${miles.toFixed(decimals)} mi`;
     }
+
+    if (meters < 1000) {
+        return `${Math.round(meters)} m`;
+    }
+    
     const km = meters / 1000;
     return `${km.toFixed(decimals)} km`;
 };

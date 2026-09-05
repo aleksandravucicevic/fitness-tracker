@@ -13,8 +13,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '../utils/theme';
+import { estimateSteps } from '../utils/activityUtils';
 import { getGoals, saveGoals, GoalsData, GoalPeriod, SingleGoalSet } from '../db/goalsRepository';
-import { getActivityStats } from '../db/activityRepository';
+import { getActivityStatsBreakdown } from '../db/activityRepository';
 import { formatDistance, kmToMiles, milesToKm, getUnitSystem } from '../utils/unitFormatter';
 import { UnitSystem } from '../services/settingsService';
 
@@ -54,12 +55,18 @@ export const GoalsScreen = () => {
   const fetchProgressForPeriod = async (targetPeriod: GoalPeriod) => {
     try {
       const daysToFetch = targetPeriod === 'daily' ? 1 : 7;
-      const stats = await getActivityStats('ALL', daysToFetch);
+      const { overall, byType } = await getActivityStatsBreakdown(daysToFetch);
 
-      const distKm = stats.totalDistance / 1000;
-      setCurrentDistanceMeters(stats.totalDistance);
-      setCurrentDurationMins(Math.floor(stats.totalDuration / 60));
-      setCurrentSteps(Math.round(distKm * 1333));
+      setCurrentDistanceMeters(overall.totalDistance);
+      setCurrentDurationMins(Math.floor(overall.totalDuration / 60));
+
+      const walkingDistance = byType['WALKING']?.totalDistance ?? 0;
+      const runningDistance = byType['RUNNING']?.totalDistance ?? 0;
+
+      const walkSteps = estimateSteps('WALKING', walkingDistance) ?? 0;
+      const runSteps = estimateSteps('RUNNING', runningDistance) ?? 0;
+
+      setCurrentSteps(walkSteps + runSteps);
     } catch (error) {
       console.error('Greška pri dohvatanju statistike za ciljeve:', error);
     }

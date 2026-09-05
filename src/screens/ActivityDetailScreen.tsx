@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, useWindowDimensions } from 'react-n
 import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
-import { getActivityTypeName } from '../utils/activityUtils';
+import { getActivityTypeName, estimateCalories } from '../utils/activityUtils';
 import { Colors } from '../utils/theme';
 import { Activity, LocationPoint } from '../models/Activity';
 import { formatDistance, formatSpeed, formatTime, formatCalories, getUnitSystem } from '../utils/unitFormatter';
@@ -101,7 +101,7 @@ export const ActivityDetailScreen = ({ route } : any) => {
                         <View style={styles.metricCard}>
                             <Ionicons name='flame-outline' size={22} color={Colors.primary} />
                             <Text style={styles.metricValue}>
-                                {formatCalories((activity.distance/1000)*60)}
+                                {formatCalories(estimateCalories(activity.type, activity.duration))}
                             </Text>
                             <Text style={styles.metricLabel}>{t('activityDetail.estCalories')}</Text>
                         </View>

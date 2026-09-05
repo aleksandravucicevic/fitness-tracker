@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import * as Location from 'expo-location';
 import { LocationPoint, ActivityType } from '../models/Activity';
 
+const MAX_ACCEPTABLE_ACCURACY = 20;
+const MAX_REALISTIC_SPEED_MS = 12;
+
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371e3;
     const f1 = (lat1 * Math.PI) / 180;
@@ -45,11 +48,14 @@ export const useTracker = () => {
         };
     }, [isTracking, isPaused]);
 
-    const startTracking = async () => {
+    const startTracking = async (): Promise<boolean> => {
         const { status } = await Location.requestForegroundPermissionsAsync();
         const isGranted = status === 'granted';
 
         setHasLocationPermission(isGranted);
+
+        if(!isGranted)
+            return false;
 
         setDuration(0);
         setDistance(0);
@@ -57,40 +63,66 @@ export const useTracker = () => {
         setIsTracking(true);
         setIsPaused(false);
 
-        if(isGranted) {
-            locationSubscription.current = await Location.watchPositionAsync(
-                {
+        try {
+            const initial = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.High});
+            
+            const initialPoint: LocationPoint = {
+                latitude: initial.coords.latitude,
+                longitude: initial.coords.longitude,
+                altitude: initial.coords.altitude,
+                speed: initial.coords.speed,
+                timestamp: initial.timestamp,
+            };
+            setCurrentLocation(initialPoint);
+            setRoute([initialPoint]);
+        } catch (error) {
+            console.warn('Nije moguće dobiti početnu lokaciju odmah:', error);
+        }
+
+        locationSubscription.current = await Location.watchPositionAsync(
+            {
                 accuracy: Location.Accuracy.High,
                 timeInterval: 2000,
-                distanceInterval: 3,
-                },
-                (location) => {
-                    const newPoint: LocationPoint = {
-                        latitude: location.coords.latitude,
-                        longitude: location.coords.longitude,
-                        altitude: location.coords.altitude,
-                        speed: location.coords.speed,
-                        timestamp: location.timestamp,
-                    };
+                distanceInterval: 1,
+            },
+            (location) => {
+                if (location.coords.accuracy != null && location.coords.accuracy > MAX_ACCEPTABLE_ACCURACY)
+                    return;
 
-                    setCurrentLocation(newPoint);
+                const newPoint: LocationPoint = {
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    altitude: location.coords.altitude,
+                    speed: location.coords.speed,
+                    timestamp: location.timestamp,
+                };
 
-                    setRoute((prevRoute) => {
-                        if(prevRoute.length > 0) {
-                            const lastPoint = prevRoute[prevRoute.length - 1];
-                            const addedDistance = calculateDistance(lastPoint.latitude, lastPoint.longitude, newPoint.latitude, newPoint.longitude);
-                            if(addedDistance > 1)
-                                setDistance((prevDist) => prevDist + addedDistance);
-                        }
+                setCurrentLocation(newPoint);
 
-                        return [...prevRoute, newPoint];
-                    });
+                setRoute((prevRoute) => {
+                    if(prevRoute.length > 0) {
+                        const lastPoint = prevRoute[prevRoute.length - 1];
+                        const addedDistance = calculateDistance(lastPoint.latitude, lastPoint.longitude, newPoint.latitude, newPoint.longitude);
 
-                    const speedKmh = (location.coords.speed || 0) * 3.6;
-                    setCurrentSpeed(speedKmh > 0 ? speedKmh : 0);
-                }
-            );
-        }
+                        const timeDeltaSec = (newPoint.timestamp - lastPoint.timestamp) / 1000;
+                        const impliedSpeed = timeDeltaSec > 0 ? addedDistance / timeDeltaSec : 0;
+
+                        if(addedDistance > 1 && impliedSpeed > MAX_REALISTIC_SPEED_MS) 
+                            return prevRoute;
+
+                        if(addedDistance > 1)
+                            setDistance((prevDist) => prevDist + addedDistance);
+                    }
+
+                    return [...prevRoute, newPoint];
+                });
+
+                const speedKmh = (location.coords.speed || 0) * 3.6;
+                setCurrentSpeed(speedKmh > 0 ? speedKmh : 0);
+            }
+        );
+
+        return true;
     };
 
     const pauseTracking = () => setIsPaused(true);
@@ -120,6 +152,7 @@ export const useTracker = () => {
         currentSpeed,
         route,
         currentLocation,
+        hasLocationPermission,
         startTracking,
         pauseTracking,
         resumeTracking,

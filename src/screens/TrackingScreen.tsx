@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, useWindowDimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, useWindowDimensions, ScrollView, Modal, TextInput } from 'react-native';
 import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useTracker } from '../hooks/useTracker';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +36,8 @@ export const TrackingScreen = () => {
   } = useTracker();
 
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [description, setDescription] = useState('');
   const mapRef = useRef<MapView>(null);
 
   useFocusEffect(
@@ -67,13 +69,24 @@ export const TrackingScreen = () => {
     const started = await startTracking();
   };
 
-  const handleSave = async () => {
-    stopTracking();
-
+  const handleOpenSaveModal = () => {
     if (route.length < 2) {
       Alert.alert(t('tracking.warning'), hasLocationPermission === false ? t('tracking.noPermissionMessage') : t('tracking.notEnoughGpsData'));
       return;
     }
+
+    pauseTracking();
+    setIsModalVisible(true);
+  };
+
+  const handleCancelSave = () => {
+    setIsModalVisible(false);
+    setDescription('');
+  };
+
+  const handleConfirmSave = async () => {
+    stopTracking();
+    setIsModalVisible(false);
 
     const avgSpeed = duration > 0 ? (distance / 1000) / (duration / 3600) : 0;
 
@@ -83,7 +96,10 @@ export const TrackingScreen = () => {
         date: new Date().toISOString(),
         routeJson: JSON.stringify(route),
         averageSpeed: parseFloat(avgSpeed.toFixed(2)),
+        description: description.trim() || undefined,
       });
+
+      setDescription('');
       Alert.alert(t('tracking.success'), t('tracking.savedSuccessfully'));
     } catch (error) {
       console.error(error);
@@ -163,7 +179,7 @@ export const TrackingScreen = () => {
                   </TouchableOpacity>
                 )}
 
-                <TouchableOpacity style={styles.stopButton} onPress={handleSave}>
+                <TouchableOpacity style={styles.stopButton} onPress={handleOpenSaveModal}>
                   <Text style={styles.buttonText}>{t('tracking.save')}</Text>
                 </TouchableOpacity>
               </View>
@@ -171,6 +187,37 @@ export const TrackingScreen = () => {
           </View>
         </ScrollView>
       </View>
+
+      {/* MODAL ZA UNOS OPISA */}
+      <Modal visible={isModalVisible} transparent={true}
+        animationType="slide" onRequestClose={handleCancelSave}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>{t('tracking.saveActivityTitle')}</Text>
+            <Text style={styles.modalSubtitle}>{t('tracking.addDescriptionPrompt')}:</Text>
+            
+            <TextInput
+              style={styles.descriptionInput}
+              placeholder={t('tracking.descriptionPlaceholder')}
+              placeholderTextColor={Colors.textSecondary}
+              value={description}
+              onChangeText={setDescription}
+              multiline
+              numberOfLines={3}
+            />
+
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity style={styles.modalCancelButton} onPress={handleCancelSave}>
+                <Text style={styles.modalCancelButtonText}>{t('picker.cancel')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.modalSaveButton} onPress={handleConfirmSave}>
+                <Text style={styles.buttonText}>{t('picker.save')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -261,4 +308,65 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: { color: '#000', fontWeight: 'bold', fontSize: 16 },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    width: '100%',
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.textPrimary,
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: 16,
+  },
+  descriptionInput: {
+    backgroundColor: Colors.background,
+    color: Colors.textPrimary,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 14,
+    textAlignVertical: 'top',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    minHeight: 80,
+    marginBottom: 20,
+  },
+  modalButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  modalCancelButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    marginRight: 10,
+    justifyContent: 'center',
+  },
+  modalCancelButtonText: {
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  modalSaveButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    alignItems: 'center',
+  },
 });

@@ -74,6 +74,17 @@ export const ActivityDetailScreen = ({ route } : any) => {
                         </View>
                     </View>
 
+                    {/* PRIKAZ OPISA (AKO POSTOJI) */}
+                    {!!activity.description && (
+                        <View style={styles.descriptionContainer}>
+                        <View style={styles.descriptionHeader}>
+                            <Ionicons name="document-text-outline" size={16} color={Colors.primary} />
+                            <Text style={styles.descriptionLabel}>{t('activityDetail.description')}</Text>
+                        </View>
+                        <Text style={styles.descriptionText}>{activity.description}</Text>
+                        </View>
+                    )}
+
                     <View style={styles.divider} />
 
                     {/* METRIKE */}
@@ -141,6 +152,30 @@ const styles = StyleSheet.create({
   },
   titleText: { fontSize: 18, fontWeight: 'bold', color: Colors.textPrimary },
   dateText: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
+  descriptionContainer: {
+    marginTop: 12,
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  descriptionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 6,
+  },
+  descriptionLabel: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: Colors.textSecondary,
+  },
+  descriptionText: {
+    fontSize: 13,
+    color: Colors.textPrimary,
+    lineHeight: 18,
+  },
   divider: {
     height: 1,
     backgroundColor: Colors.border,
@@ -150,7 +185,7 @@ const styles = StyleSheet.create({
   metricCard: {
     width: '48%',
     backgroundColor: Colors.cardBackground,
-    padding: 14,
+    padding: 11,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.border,

@@ -8,6 +8,8 @@ import { SettingsService } from './src/services/settingsService';
 import i18n from './src/services/i18n';
 import { StatusBar } from 'expo-status-bar';
 import { Colors } from './src/utils/theme';
+import { getLastActivityDate } from './src/db/activityRepository';
+import { scheduleDailyReminder } from './src/services/notificationService';
 
 LogBox.ignoreLogs([
   'expo-notifications: Android Push notifications',
@@ -25,6 +27,15 @@ export default function App() {
         await i18n.changeLanguage(savedLang);
 
         await initDatabase();
+
+        // pri svakom pokretanju provjera kada je registrovana posljednja aktivnost
+        try{
+          const lastActivityDate = await getLastActivityDate();
+          await scheduleDailyReminder(lastActivityDate ? new Date(lastActivityDate) : null);
+        } catch(notifError) {
+          console.warn('Greška pri zakazivanju podsjetnika:', notifError);
+        }
+
         setIsDbReady(true);
       }
       catch(error){

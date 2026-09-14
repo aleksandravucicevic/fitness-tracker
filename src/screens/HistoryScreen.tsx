@@ -10,7 +10,7 @@ import {
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
-import { useFocusEffect,useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { getActivityTypeName } from '../utils/activityUtils';
@@ -27,6 +27,7 @@ export const HistoryScreen = () => {
   const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('ALL');
+  const [selectedDuration, setSelectedDuration] = useState<'ALL' | 'SHORT' | 'MEDIUM' | 'LONG'>('ALL');
   const navigation = useNavigation<any>();
 
   const { width, height } = useWindowDimensions();
@@ -64,11 +65,26 @@ export const HistoryScreen = () => {
     ]);
   };
 
+  const matchesDurationFilter = (durationSeconds: number): boolean => {
+    const minutes = durationSeconds / 60;
+    switch(selectedDuration) {
+      case 'SHORT':
+        return minutes < 30;
+      case 'MEDIUM':
+        return minutes >= 30 && minutes <= 60;
+      case 'LONG':
+        return minutes > 60;
+      default:
+        return true;
+    }
+  }
+
   const filteredActivities = activities.filter((item) => {
     const matchesType = selectedType === 'ALL' || item.type === selectedType;
+    const matchesDuration = matchesDurationFilter(item.duration);
 
     const query = searchQuery.trim().toLowerCase();
-    if (!query) return matchesType;
+    if (!query) return matchesType && matchesDuration;
 
     const translatedName = getActivityTypeName(item.type, t).toLowerCase();
     const formattedDate = new Date(item.date).toLocaleDateString(i18n.language).toLowerCase();
@@ -77,51 +93,79 @@ export const HistoryScreen = () => {
     const matchesSearch = translatedName.includes(query) ||
                           formattedDate.includes(query) ||
                           rawDate.includes(query);
-    return matchesType && matchesSearch;
+    return matchesType && matchesDuration && matchesSearch;
   });
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isLandscape && { padding: 18 }]}>
       {/* SEARCH, FILTER, LIST/TABLE VIEW */}
-      <View style={styles.headerControls}>
-        {/* SEARCH */}
-        <View style={styles.searchBar}>
-          <Ionicons name='search-outline' size={18} color={Colors.textSecondary} />
-          <TextInput style={styles.searchInput} placeholder={t('history.searchPlaceholder')}
+      <View style={[styles.controlsCard, isLandscape && styles.controlsCardLandscape]}>
+        <View style={styles.headerControls}>
+          {/* SEARCH */}
+          <View style={styles.searchBar}>
+            <Ionicons name='search-outline' size={18} color={Colors.textSecondary} />
+            <TextInput style={styles.searchInput} placeholder={t('history.searchPlaceholder')}
                     placeholderTextColor={Colors.textSecondary} value={searchQuery} onChangeText={setSearchQuery} autoCorrect={false} />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Ionicons name="close-circle" size={18} color={Colors.textSecondary} />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Ionicons name="close-circle" size={18} color={Colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* LIST/TABLE */}
+          <View style={styles.toggleContainer}>
+            <TouchableOpacity style={[styles.toggleBtn, viewMode === 'list' && styles.toggleBtnActive]}
+            onPress={() => setViewMode('list')}>
+              <Ionicons name='list' size={20} color={viewMode === 'list' ? '#000' : Colors.textSecondary} />
             </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.toggleBtn, viewMode === 'table' && styles.toggleBtnActive]}
+            onPress={() => setViewMode('table')}>
+              <Ionicons name='grid' size={18} color={viewMode === 'table' ? "#000" : Colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* FILTERI */}
+        <View style={[styles.filtersWrapper, isLandscape ? styles.filtersWrapperLandscape : styles.filtersWrapperPortrait]}>
+          
+          {/* TIP AKTIVNOSTI */}
+          <View style={[styles.filterChipsContainer, isLandscape ? styles.filterChipsLandscape : styles.filterChipsPortrait]}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
+              {['ALL', 'RUNNING', 'WALKING', 'CYCLING'].map((type) => (
+                <TouchableOpacity key={type} style={[styles.chip, selectedType === type && styles.chipActive]}
+                  onPress={() => setSelectedType(type)}>
+                  <Text style={[styles.chipText, selectedType === type && styles.chipTextActive]}>
+                    {getActivityTypeName(type, t)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* SEPARATOR */}
+          {isLandscape ? (
+            <View style={styles.verticalDivider} />
+          ) : (
+            <View style={styles.horizontalDivider} />
           )}
+
+          {/* TRAJANJE */}
+          <View style={[styles.filterChipsContainer, isLandscape ? styles.filterChipsLandscape : styles.filterChipsPortrait]}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
+              {(['ALL', 'SHORT', 'MEDIUM', 'LONG'] as const).map((durationOption) => (
+                <TouchableOpacity key={durationOption} style={[styles.chip, selectedDuration === durationOption && styles.chipActive]}
+                  onPress={() => setSelectedDuration(durationOption)}>
+                  <Text style={[styles.chipText, selectedDuration === durationOption && styles.chipTextActive]}>
+                    {t(`history.durationFilter.${durationOption}`)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
         </View>
-
-        {/* LIST/TABLE */}
-        <View style={styles.toggleContainer}>
-          <TouchableOpacity style={[styles.toggleBtn, viewMode === 'list' && styles.toggleBtnActive]}
-          onPress={() => setViewMode('list')}>
-            <Ionicons name='list' size={20} color={viewMode === 'list' ? '#000' : Colors.textSecondary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.toggleBtn, viewMode === 'table' && styles.toggleBtnActive]}
-          onPress={() => setViewMode('table')}>
-            <Ionicons name='grid' size={18} color={viewMode === 'table' ? "#000" : Colors.textSecondary} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* FILTERI */}
-      <View style={styles.filterChipsContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={true} contentContainerStyle={styles.filterChips}>
-          {['ALL', 'RUNNING', 'WALKING', 'CYCLING'].map((type) => (
-            <TouchableOpacity key={type} style={[styles.chip, selectedType === type && styles.chipActive]}
-              onPress={() => setSelectedType(type)}>
-              <Text style={[styles.chipText, selectedType === type && styles.chipTextActive]}>
-                {getActivityTypeName(type, t)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
       </View>
 
       {/* SADRŽAJ LISTE/TABELE */}
@@ -228,35 +272,74 @@ export const HistoryScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background, padding: 18, paddingBottom: 5 },
-  headerControls: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  container: { flex: 1, backgroundColor: Colors.background, padding: 15, paddingBottom: 5 },
+  controlsCard: {
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  controlsCardLandscape: {
+    paddingVertical: 8,
+  },
+  headerControls: { flexDirection: 'row', gap: 10, marginBottom: 8, alignItems: 'center', },
   searchBar: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.cardBackground,
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    borderRadius: 8,
+    paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  searchInput: { flex: 1, color: Colors.textPrimary, paddingVertical: 8, marginLeft: 8 },
+  searchInput: { flex: 1, color: Colors.textPrimary, fontSize: 13, paddingVertical: 8, marginLeft: 6 },
   toggleContainer: {
     flexDirection: 'row',
     backgroundColor: Colors.cardBackground,
-    borderRadius: 10,
+    borderRadius: 8,
     padding: 2,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  toggleBtn: { padding: 8, borderRadius: 8 },
+  toggleBtn: { padding: 6, borderRadius: 6 },
   toggleBtnActive: { backgroundColor: Colors.primary },
-  filterChipsContainer: { marginBottom: 10 },
-  filterChips: { flexDirection: 'row', gap: 8 },
+  filtersWrapper: { width: '100%' },
+  filtersWrapperPortrait: {
+    flexDirection: 'column',
+    gap: 4,
+  },
+  filtersWrapperLandscape: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  filterChipsContainer: {},
+  filterChipsLandscape: {
+    flex: 1,
+    minWidth: 0,
+  },
+  filterChipsPortrait: {
+    width: '100%',
+  },
+  verticalDivider: {
+    width: 2,
+    height: 24,
+    backgroundColor: Colors.border,
+    marginHorizontal: 8,
+  },
+  horizontalDivider: {
+    height: 1,
+    width: '100%',
+    backgroundColor: Colors.border,
+    marginVertical: 1,
+  },
+  filterChips: { flexDirection: 'row', gap: 6, paddingVertical: 2 },
   chip: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 14,
     backgroundColor: Colors.cardBackground,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -266,10 +349,10 @@ const styles = StyleSheet.create({
   chipTextActive: { color: '#000', fontWeight: 'bold' },
   card: {
     backgroundColor: Colors.cardBackground,
-    padding: 16,
+    padding: 14,
     paddingVertical: 10,
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: Colors.border,
   },
@@ -277,15 +360,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     justifyContent: 'space-between', 
     alignItems: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     paddingBottom: 6,
   },
   activityType: { color: Colors.textPrimary, fontWeight: 'bold', fontSize: 16 },
-  dateText: { color: Colors.textSecondary, fontSize: 12, marginTop: 2 },
+  dateText: { color: Colors.textSecondary, fontSize: 13, marginTop: 1 },
   deleteButtonHeader: {
-    padding: 6,
+    padding: 5,
     backgroundColor: 'rgba(255, 59, 48, 0.1)',
     borderRadius: 8,
   },

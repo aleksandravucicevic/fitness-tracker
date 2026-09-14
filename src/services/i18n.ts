@@ -23,6 +23,8 @@ const resources = {
       notificationTime: 'Vrijeme dnevnog podsjetnika',
       notificationsTestTitle: 'Test Notifikacija',
       notificationsTestBody: 'Poslana test notifikacija!',
+      notificationsInactiveTitle: 'Vratite se!',
+      notificationsInactiveBody: 'Niste bili aktivni već {{days}} dana. Vrijeme je da se vratite treningu!',
 
       picker: {
         cancel: 'Otkaži',
@@ -55,6 +57,12 @@ const resources = {
         distance: 'Distanca',
         duration: 'Trajanje',
         avgSpeed: 'Prosjek',
+        durationFilter: {
+          ALL: 'Sve',
+          SHORT: '< 30 min',
+          MEDIUM: '30–60 min',
+          LONG: '> 60 min',
+        },
         table: {
           type: 'Tip',
           date: 'Datum',
@@ -70,6 +78,7 @@ const resources = {
         totalDuration: 'Ukupno trajanje',
         avgSpeed: 'Prosječna brzina',
         estCalories: 'Procijenjeno sagorijevanje',
+        steps: 'Broj koraka',
         description: 'Opis',
       },
       stats: {
@@ -125,6 +134,7 @@ const resources = {
       distance: 'Distanca',
       time: 'Vrijeme',
       speed: 'Brzina',
+      steps: 'Koraci',
       start: 'START',
       pause: 'PAUZA',
       resume: 'NASTAVI',
@@ -187,6 +197,8 @@ const resources = {
       notificationTime: 'Time of Daily Reminder',
       notificationsTestTitle: 'Test Notification',
       notificationsTestBody: 'A Test Notification Sent!',
+      notificationsInactiveTitle: 'Come back!',
+      notificationsInactiveBody: 'You haven\'t been active for {{days}} days. Time to get back on track!',
 
       picker: {
         cancel: 'Cancel',
@@ -219,6 +231,12 @@ const resources = {
         distance: 'Distance',
         duration: 'Duration',
         avgSpeed: 'Avg Speed',
+        durationFilter: {
+          ALL: 'All',
+          SHORT: '< 30 min',
+          MEDIUM: '30–60 min',
+          LONG: '> 60 min',
+        },
         table: {
           type: 'Type',
           date: 'Date',
@@ -234,6 +252,7 @@ const resources = {
         totalDuration: 'Total Duration',
         avgSpeed: 'Average Speed',
         estCalories: 'Estimated Burn',
+        steps: 'Step Count',
         description: 'Description',
       },
       stats: {
@@ -289,6 +308,7 @@ const resources = {
       distance: 'Distance',
       time: 'Time',
       speed: 'Speed',
+      steps: 'Steps',
       start: 'START',
       pause: 'PAUSE',
       resume: 'RESUME',

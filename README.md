@@ -38,7 +38,10 @@ cd fitness-tracker
 npm install
 ```
 3. Podešavanje `.env` fajla za **Google Maps API**
-   Kreiranje fajla i dodavanje sopstvenog API ključa:
+   Kreiranje fajla na osnovu `.env.example` i dodavanje sopstvenog API ključa:
+```bash
+cp .env.example .env
+```
 ```env
 EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=SOPSTVENI_GOOGLE_MAPS_API_KLJUČ
 ```

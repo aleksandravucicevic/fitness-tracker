@@ -1,4 +1,11 @@
-{
+if (!process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY) {
+  console.warn(
+    '\n EXPO_PUBLIC_GOOGLE_MAPS_API_KEY nije definisan. ' +
+    'Kreiraj .env fajl na osnovu .env.example i unesi svoj Google Maps API ključ.\n'
+  );
+}
+
+module.exports = {
   "expo": {
     "name": "Fitness Tracker",
     "slug": "fitness-tracker",
@@ -20,7 +27,7 @@
       "package": "com.anonymous.fitnesstracker",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyCRPCGTEkKqMLCBfhycfejMQx9AT-fa7q0"
+          "apiKey": process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
         }
       }
     },

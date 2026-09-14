@@ -20,6 +20,7 @@ import { ActivityType } from '../models/Activity';
 import { getActivityTypeName } from '../utils/activityUtils';
 import { getUnitSystem, milesToKm } from '../utils/unitFormatter';
 import { UnitSystem } from '../services/settingsService';
+import { scheduleDailyReminder } from '../services/notificationService';
 
 export const ManualActivityScreen = () => {
   const { t, i18n } = useTranslation();
@@ -73,6 +74,9 @@ export const ManualActivityScreen = () => {
         averageSpeed: parseFloat(avgSpeed.toFixed(2)),
       });
 
+      // ponovno zakazivanje podsjetnika na osnovu unesenog datuma aktivnosti
+      scheduleDailyReminder(date).catch(() => {});
+      
       Alert.alert(t('manual.success'), t('manual.savedSuccessfully'));
       navigation.goBack();
     } catch (error) {

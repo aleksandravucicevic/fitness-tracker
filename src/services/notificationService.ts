@@ -5,6 +5,7 @@ import { SettingsService } from './settingsService';
 import i18n from 'i18next';
 
 const isExpoGo = Constants.appOwnership === 'expo';
+const INACTIVITY_THRESHOLD_DAYS = 3;
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -43,6 +44,13 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
     return true;
 };
 
+// broj dana neaktivnosti
+const daysBetween = (from: Date, to: Date): number => {
+    const start = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    const end = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+    return Math.round((end.getTime() - start.getTime()) / (1000*60*60*24));
+}
+
 export const scheduleDailyReminder = async (lastActivityDate?: Date | null) => {
     const isEnabled = await SettingsService.getNotificationEnabled();
     await Notifications.cancelAllScheduledNotificationsAsync();
@@ -53,14 +61,35 @@ export const scheduleDailyReminder = async (lastActivityDate?: Date | null) => {
     if(!hasPermission) return;
 
     const { hour, minute } = await SettingsService.getNotificationTime();
-
     const today = new Date();
-    const hasTrainedToday = lastActivityDate ? (
-        new Date(lastActivityDate).getDate() === today.getDate() &&
-        new Date(lastActivityDate).getMonth() === today.getMonth() && 
-        new Date(lastActivityDate).getFullYear() === today.getFullYear()
-    ) : false;
 
+    const daysSinceLastActivity = lastActivityDate ? daysBetween(new Date(lastActivityDate), today) : null;
+    const hasTrainedToday = daysSinceLastActivity === 0;
+    const isLongInactive = daysSinceLastActivity != null && daysSinceLastActivity <= INACTIVITY_THRESHOLD_DAYS;
+
+    // podsjetnik u slučaju da korisnik nije bio aktivan duži vremenski period
+    if(isLongInactive) {
+        const todayKey = today.toISOString().slice(0, 10);
+        const lastAlertSent = await SettingsService.getLastInactivityAlertDate();
+
+        if(lastAlertSent !== todayKey) {
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: i18n.t('notificationsInactiveTitle'),
+                    body: i18n.t('notificationsInactiveBody', { days: daysSinceLastActivity }),
+                    sound: true,
+                },
+                trigger: {
+                    type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+                    seconds: 0,
+                    repeats: false,
+                },
+            });
+            await SettingsService.setLastActivityAlertDate(todayKey);
+        }
+    }
+
+    // redovni dnevni podsjetnik
     let targetDate = new Date();
     targetDate.setHours(hour, minute, 0, 0);
 

@@ -30,6 +30,14 @@ export const deleteActivity = async (id: number): Promise<void> => {
     await db.runAsync('DELETE FROM activities WHERE id = ?;', [id]);
 }
 
+export const getLastActivityDate = async (): Promise<string | null> => {
+    const db = await getDbConnection();
+    const result = await db.getFirstAsync<{ date: string }>(
+        'SELECT date FROM activities ORDER BY date DESC LIMIT 1;'
+    );
+    return result?.date ?? null;
+}
+
 export interface ActivityStats {
     totalDistance: number,
     totalDuration: number,

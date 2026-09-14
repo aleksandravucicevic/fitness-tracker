@@ -4,6 +4,7 @@ const LANGUAGE_KEY = '@app_language';
 const UNITS_KEY = '@app_units';
 const NOTIF_KEY = '@app_notifications_enabled';
 const NOTIF_TIME_KEY = '@notification_time';
+const LAST_INACTIVITY_ALERT_KEY = '@last_activity_alert_date'
 
 export type UnitSystem = 'metric' | 'imperial';
 export type Language = 'sr' | 'en';
@@ -51,5 +52,13 @@ export const SettingsService = {
         } catch (error) {
             console.error('Greška pri čuvanju vremena za notifikacije:', error);
         }
+    },
+
+    async getLastInactivityAlertDate(): Promise<string | null> {
+        return AsyncStorage.getItem(LAST_INACTIVITY_ALERT_KEY);
+    },
+
+    async setLastActivityAlertDate(isoDate : string): Promise<void> {
+        await AsyncStorage.setItem(LAST_INACTIVITY_ALERT_KEY, isoDate);
     },
 };

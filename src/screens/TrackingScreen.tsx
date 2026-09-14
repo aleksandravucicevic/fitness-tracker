@@ -11,6 +11,7 @@ import { ActivityType } from '../models/Activity';
 import { formatDistance, formatSpeed, formatTime, getUnitSystem } from '../utils/unitFormatter';
 import { UnitSystem } from '../services/settingsService';
 import { useFocusEffect } from '@react-navigation/native';
+import { scheduleDailyReminder } from '../services/notificationService';
 
 export const TrackingScreen = () => {
   const {t, i18n} = useTranslation();
@@ -100,6 +101,8 @@ export const TrackingScreen = () => {
       });
 
       setDescription('');
+      // ponovno zakazivanje podsjetnika, s obzirom da je korisnik upravo sačuvao trening
+      scheduleDailyReminder(new Date()).catch(() => {});
       Alert.alert(t('tracking.success'), t('tracking.savedSuccessfully'));
     } catch (error) {
       console.error(error);

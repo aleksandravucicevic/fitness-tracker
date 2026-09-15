@@ -4,15 +4,15 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   useWindowDimensions,
 } from 'react-native';
+import { RippleTouchable } from '../components/RippleTouchable';
 import { useFocusEffect } from '@react-navigation/native';
 import { BarChart } from 'react-native-chart-kit';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { getActivityTypeName } from '../utils/activityUtils';
-import { Colors } from '../utils/theme';
+import { Colors, SubtleElevation } from '../utils/theme';
 import { getActivityStats, ActivityStats } from '../db/activityRepository';
 import { getAllActivities } from '../db/activityRepository';
 import { Activity } from '../models/Activity';
@@ -27,7 +27,7 @@ export const StatsScreen = () => {
   const [periodDays, setPeriodDays] = useState<number>(7);
   const [activityType, setActivityType] = useState<string>('ALL');
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
-  const [stats, setStats] = useState<ActivityStats>({ totalDistance: 0, totalDuration: 0, totalCount: 0, avgSpeed: 0});
+  const [stats, setStats] = useState<ActivityStats>({ totalDistance: 0, totalDuration: 0, totalCount: 0, avgSpeed: 0, totalSteps: 0 });
 
   const [chartData, setChartData] = useState<{labels: string[]; data: number[]; unit: string; periodLabelKey: string; }>({
     labels: ['-'],
@@ -160,7 +160,7 @@ export const StatsScreen = () => {
   const computedHeight = isLandscape ? 160 : 220;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
+    <ScrollView style={[styles.container, isLandscape && {paddingHorizontal: 32}]} contentContainerStyle={{ paddingBottom: 30 }}>
       {/* SELEKTOR PERIODA */}
       <View style={styles.periodSelector}>
         {[
@@ -168,24 +168,24 @@ export const StatsScreen = () => {
           { label: t('stats.days30'), value: 30},
           { label: t('stats.year1'), value: 365 },
         ].map((p) => (
-          <TouchableOpacity key={p.value} style={[styles.periodBtn, periodDays === p.value && styles.periodBtnActive]}
+          <RippleTouchable key={p.value} style={[styles.periodBtn, periodDays === p.value && styles.periodBtnActive]}
           onPress={() => setPeriodDays(p.value)}>
             <Text style={[styles.periodBtnText, periodDays === p.value && styles.periodBtnTextActive]}>
               {p.label}
             </Text>
-          </TouchableOpacity>
+          </RippleTouchable>
         ))}
       </View>
 
       {/* FILTER PO TIPU AKTIVNOSTI */}
       <View style={styles.filterChips}>
         {['ALL', 'RUNNING', 'WALKING', 'CYCLING'].map((type) => (
-          <TouchableOpacity key={type} style={[styles.chip, activityType === type && styles.chipActive]}
+          <RippleTouchable key={type} style={[styles.chip, activityType === type && styles.chipActive]}
           onPress={() => setActivityType(type)}>
             <Text style={[styles.chipText, activityType === type && styles.chipTextActive]}>
               {getActivityTypeName(type, t)}
             </Text>
-          </TouchableOpacity>
+          </RippleTouchable>
         ))}
       </View>
 
@@ -284,6 +284,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.border,
+    ...SubtleElevation,
   },
   landscapeStatCard: {
     width: '23.5%',
@@ -299,6 +300,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: 'center',
+    ...SubtleElevation,
   },
   chartTitle: {
     fontSize: 15,

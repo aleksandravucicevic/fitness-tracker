@@ -5,14 +5,14 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
-  TouchableOpacity,
   Alert,
   useWindowDimensions,
 } from 'react-native';
+import { RippleTouchable } from '../components/RippleTouchable';
 import { useFocusEffect } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
-import { Colors } from '../utils/theme';
+import { Colors, SubtleElevation } from '../utils/theme';
 import { estimateSteps } from '../utils/activityUtils';
 import { getGoals, saveGoals, GoalsData, GoalPeriod, SingleGoalSet } from '../db/goalsRepository';
 import { getActivityStatsBreakdown } from '../db/activityRepository';
@@ -143,26 +143,26 @@ export const GoalsScreen = () => {
   const distanceProgressPercent = targetDistanceMeters > 0 ? Math.min((currentDistanceMeters / targetDistanceMeters) * 100, 100) : 0;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
+    <ScrollView style={[styles.container, isLandscape && {paddingHorizontal: 30}]} contentContainerStyle={{ paddingBottom: 30 }}>
       {/* SELEKTOR PERIODA */}
       <View style={styles.periodToggle}>
-        <TouchableOpacity
+        <RippleTouchable
           style={[styles.periodBtn, period === 'daily' && styles.periodBtnActive]}
           onPress={() => handlePeriodChange('daily')}
         >
           <Text style={[styles.periodBtnText, period === 'daily' && styles.periodBtnTextActive]}>
             {t('goals.dailyGoals')}
           </Text>
-        </TouchableOpacity>
+        </RippleTouchable>
 
-        <TouchableOpacity
+        <RippleTouchable
           style={[styles.periodBtn, period === 'weekly' && styles.periodBtnActive]}
           onPress={() => handlePeriodChange('weekly')}
         >
           <Text style={[styles.periodBtnText, period === 'weekly' && styles.periodBtnTextActive]}>
             {t('goals.weeklyGoals')}
           </Text>
-        </TouchableOpacity>
+        </RippleTouchable>
       </View>
 
       <View style={isLandscape ? styles.landscapeRow : undefined}>
@@ -291,10 +291,10 @@ export const GoalsScreen = () => {
             </View>
 
             <View style={[styles.inputCol, {marginTop: 20}]}>
-              <TouchableOpacity style={styles.saveButton} onPress={handleSaveGoals}>
+              <RippleTouchable style={styles.saveButton} onPress={handleSaveGoals}>
                 <Ionicons name="save-outline" size={20} color="#000" />
                 <Text style={styles.saveButtonText}>{t('goals.saveGoals')}</Text>
-              </TouchableOpacity>
+              </RippleTouchable>
             </View>
           </View>
         </View>
@@ -329,6 +329,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: Colors.border,
+    ...SubtleElevation,
   },
   cardTitle: { fontSize: 16, fontWeight: 'bold', color: Colors.textPrimary, marginBottom: 16 },
   noGoalsText: { color: Colors.textSecondary, fontStyle: 'italic', fontSize: 13 },

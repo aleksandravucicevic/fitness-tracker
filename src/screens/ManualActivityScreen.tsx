@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
   Alert,
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
+import { RippleTouchable } from '../components/RippleTouchable';
 import { DatePickerModal } from '../components/DatePickerModal';
 import { TimePickerModal } from '../components/TimePickerModal';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -107,7 +107,7 @@ export const ManualActivityScreen = () => {
       </Text>
       <View style={styles.typeSelector}>
         {(['RUNNING', 'WALKING', 'CYCLING'] as ActivityType[]).map((type) => (
-          <TouchableOpacity
+          <RippleTouchable
             key={type}
             style={[styles.typeButton, activityType === type && styles.selectedTypeButton]}
             onPress={() => setActivityType(type)}
@@ -115,7 +115,7 @@ export const ManualActivityScreen = () => {
             <Text style={[styles.typeText, activityType === type && styles.selectedTypeText]}>
               {getActivityTypeName(type, t)}
             </Text>
-          </TouchableOpacity>
+          </RippleTouchable>
         ))}
       </View>
     </>
@@ -128,16 +128,16 @@ export const ManualActivityScreen = () => {
         <RedAsterisk />
       </Text>
       <View style={styles.rowInputs}>
-        <TouchableOpacity style={styles.dateBtn} onPress={() => setShowDatePicker(true)}>
+        <RippleTouchable style={styles.dateBtn} onPress={() => setShowDatePicker(true)}>
           <Ionicons name="calendar-outline" size={18} color={Colors.primary} />
           <Text style={styles.dateBtnText}>{date.toLocaleDateString(i18n.language)}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.dateBtn} onPress={() => setShowTimePicker(true)}>
+        </RippleTouchable>
+        <RippleTouchable style={styles.dateBtn} onPress={() => setShowTimePicker(true)}>
           <Ionicons name="time-outline" size={18} color={Colors.primary} />
           <Text style={styles.dateBtnText}>
             {date.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
           </Text>
-        </TouchableOpacity>
+        </RippleTouchable>
       </View>
     </>
   );
@@ -192,12 +192,12 @@ export const ManualActivityScreen = () => {
   );
 
   const renderSaveButton = () => (
-    <TouchableOpacity style={styles.saveButton} onPress={handleSave} disabled={isSaving}>
+    <RippleTouchable style={styles.saveButton} onPress={handleSave} disabled={isSaving}>
       <Ionicons name="save-outline" size={20} color="#000" />
       <Text style={styles.saveButtonText}>
         {isSaving ? t('manual.saving') : t('manual.save')}
       </Text>
-    </TouchableOpacity>
+    </RippleTouchable>
   );
 
   return (
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 20,
     alignItems: 'stretch',
-    paddingHorizontal: 14,
+    paddingHorizontal: 18,
   },
   landscapeColumn: {
     flex: 1,

@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, useWindowDimensions, ScrollView, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Alert, useWindowDimensions, ScrollView, Modal, TextInput } from 'react-native';
+import { RippleTouchable } from '../components/RippleTouchable';
 import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useTracker } from '../hooks/useTracker';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { getActivityTypeName } from '../utils/activityUtils';
-import { Colors } from '../utils/theme';
+import { Colors, CardElevation } from '../utils/theme';
 import { saveActivity } from '../db/activityRepository';
 import { ActivityType } from '../models/Activity';
 import { formatDistance, formatSpeed, formatTime, getUnitSystem } from '../utils/unitFormatter';
@@ -141,12 +142,12 @@ export const TrackingScreen = () => {
           {!isTracking && (
             <View style={styles.typeSelector}>
               {(['RUNNING', 'WALKING', 'CYCLING'] as ActivityType[]).map((type) => (
-                <TouchableOpacity key={type} style={[styles.typeButton, activityType === type && styles.selectedTypeButton ]}
+                <RippleTouchable key={type} style={[styles.typeButton, activityType === type && styles.selectedTypeButton ]}
                 onPress={() => setActivityType(type)}>
                   <Text style={[styles.typeText, activityType === type && styles.selectedTypeText ]}>
                     {getActivityTypeName(type, t)}
                   </Text>
-                </TouchableOpacity>
+                </RippleTouchable>
               ))}
             </View>
           )}
@@ -176,24 +177,24 @@ export const TrackingScreen = () => {
           {/* DUGMAD */}
           <View style={styles.actionContainer}>
             {!isTracking ? (
-              <TouchableOpacity style={styles.startButton} onPress={handleStart}>
+              <RippleTouchable style={styles.startButton} onPress={handleStart}>
                 <Text style={styles.buttonText}>{t('tracking.start')}</Text>
-              </TouchableOpacity>
+              </RippleTouchable>
             ) : (
               <View style={styles.activeControls}>
                 {isPaused ? (
-                  <TouchableOpacity style={styles.resumeButton} onPress={resumeTracking}>
+                  <RippleTouchable style={styles.resumeButton} onPress={resumeTracking}>
                     <Text style={styles.buttonText}>{t('tracking.resume')}</Text>
-                  </TouchableOpacity>
+                  </RippleTouchable>
                 ) : (
-                  <TouchableOpacity style={styles.pauseButton} onPress={pauseTracking}>
+                  <RippleTouchable style={styles.pauseButton} onPress={pauseTracking}>
                     <Text style={styles.buttonText}>{t('tracking.pause')}</Text>
-                  </TouchableOpacity>
+                  </RippleTouchable>
                 )}
 
-                <TouchableOpacity style={styles.stopButton} onPress={handleOpenSaveModal}>
+                <RippleTouchable style={styles.stopButton} onPress={handleOpenSaveModal}>
                   <Text style={styles.buttonText}>{t('tracking.save')}</Text>
-                </TouchableOpacity>
+                </RippleTouchable>
               </View>
             )}
           </View>
@@ -219,13 +220,13 @@ export const TrackingScreen = () => {
             />
 
             <View style={styles.modalButtonRow}>
-              <TouchableOpacity style={styles.modalCancelButton} onPress={handleCancelSave}>
+              <RippleTouchable style={styles.modalCancelButton} onPress={handleCancelSave}>
                 <Text style={styles.modalCancelButtonText}>{t('picker.cancel')}</Text>
-              </TouchableOpacity>
+              </RippleTouchable>
 
-              <TouchableOpacity style={styles.modalSaveButton} onPress={handleConfirmSave}>
+              <RippleTouchable style={styles.modalSaveButton} onPress={handleConfirmSave}>
                 <Text style={styles.buttonText}>{t('picker.save')}</Text>
-              </TouchableOpacity>
+              </RippleTouchable>
             </View>
           </View>
         </View>
@@ -248,6 +249,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
+    ...CardElevation,
   },
   dashboardLandscape: {
     flex: 1,
@@ -257,6 +259,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderLeftColor: Colors.border,
     justifyContent: 'center',
+    ...CardElevation,
   },
   scrollContentLandscape: {
     justifyContent: 'center',
@@ -335,6 +338,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderColor: Colors.border,
+    ...CardElevation,
   },
   modalTitle: {
     fontSize: 18,

@@ -50,7 +50,7 @@ const resources = {
       history: {
         deleteTitle: 'Brisanje aktivnosti',
         deleteMessage: 'Da li ste sigurni da želite obrisati aktivnost?',
-        cancel: 'Otkazati',
+        cancel: 'Otkaži',
         delete: 'Obriši',
         searchPlaceholder: 'Pretraga po datumu ili tipu...',
         noActivitiesFound: 'Nema pronađenih aktivnosti.',

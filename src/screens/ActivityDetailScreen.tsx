@@ -4,7 +4,7 @@ import MapView, { Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { getActivityTypeName, estimateCalories } from '../utils/activityUtils';
-import { Colors } from '../utils/theme';
+import { Colors, SubtleElevation } from '../utils/theme';
 import { Activity, LocationPoint } from '../models/Activity';
 import { formatDistance, formatSpeed, formatTime, formatCalories, getUnitSystem } from '../utils/unitFormatter';
 import { UnitSystem } from '../services/settingsService';
@@ -197,6 +197,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: Colors.border,
+    ...SubtleElevation,
   },
   metricValue: {
     fontSize: 18,

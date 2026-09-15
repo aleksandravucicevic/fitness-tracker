@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from "react-i18next";
-import { Colors } from '../utils/theme';
+import { Colors, SubtleElevation } from '../utils/theme';
 
 import { HomeScreen } from '../screens/HomeScreen';
 import { TrackingScreen } from '../screens/TrackingScreen';
@@ -35,6 +35,7 @@ const TabNavigator = () => {
                 height: 52 + insets.bottom,
                 paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
                 paddingTop: 3,
+                ...SubtleElevation,
             },
             tabBarActiveTintColor: Colors.activeTab,
             tabBarInactiveTintColor: Colors.inactiveTab,
@@ -62,7 +63,7 @@ export const AppNavigator = () => {
 
     return (
         <>
-            <StatusBar style="light" backgroundColor={Colors.cardBackground} />
+            <StatusBar style="light" />
             <NavigationContainer>
                 <Stack.Navigator screenOptions={{ headerShown: false }}>
                     <Stack.Screen name="MainTabs" component={TabNavigator} />

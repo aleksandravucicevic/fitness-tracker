@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   Modal,
-  TouchableOpacity,
   FlatList,
 } from 'react-native';
+import { RippleTouchable } from './RippleTouchable';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
-import { Colors } from '../utils/theme';
+import { Colors, CardElevation } from '../utils/theme';
 
 interface DatePickerModalProps {
   visible: boolean;
@@ -86,19 +86,19 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1} style={styles.card}>
+      <RippleTouchable style={styles.overlay} onPress={onClose}>
+        <RippleTouchable style={styles.card}>
           {/* Zaglavlje sa mjesecima */}
           <View style={styles.header}>
-            <TouchableOpacity style={styles.navBtn} onPress={() => changeMonth(-1)}>
+            <RippleTouchable style={styles.navBtn} onPress={() => changeMonth(-1)}>
               <Ionicons name="chevron-back" size={20} color={Colors.textPrimary} />
-            </TouchableOpacity>
+            </RippleTouchable>
             <Text style={styles.monthTitle}>
               {cyrillicToLatin(currentMonth.toLocaleDateString(i18n.language, { month: 'long', year: 'numeric' }))}
             </Text>
-            <TouchableOpacity style={styles.navBtn} onPress={() => changeMonth(1)}>
+            <RippleTouchable style={styles.navBtn} onPress={() => changeMonth(1)}>
               <Ionicons name="chevron-forward" size={20} color={Colors.textPrimary} />
-            </TouchableOpacity>
+            </RippleTouchable>
           </View>
 
           {/* Dani u sedmici */}
@@ -124,7 +124,7 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
               const isDisabled = maximumDate && itemDate > maximumDate;
 
               return (
-                <TouchableOpacity
+                <RippleTouchable
                   key={index}
                   disabled={isDisabled}
                   style={[
@@ -141,16 +141,16 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
                   ]}>
                     {item}
                   </Text>
-                </TouchableOpacity>
+                </RippleTouchable>
               );
             })}
           </View>
 
-          <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+          <RippleTouchable style={styles.closeBtn} onPress={onClose}>
             <Text style={styles.closeBtnText}>{t('picker.cancel') ?? t('picker.close')}</Text>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </TouchableOpacity>
+          </RippleTouchable>
+        </RippleTouchable>
+      </RippleTouchable>
     </Modal>
   );
 };
@@ -171,6 +171,7 @@ const styles = StyleSheet.create({
     padding: 18,
     borderWidth: 1,
     borderColor: Colors.border,
+    ...CardElevation,
   },
   header: {
     flexDirection: 'row',

@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   Modal,
-  TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import { RippleTouchable } from './RippleTouchable';
 import { useTranslation } from 'react-i18next';
-import { Colors } from '../utils/theme';
+import { Colors, CardElevation } from '../utils/theme';
 
 interface TimePickerModalProps {
   visible: boolean;
@@ -41,8 +41,8 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1} style={styles.card}>
+      <RippleTouchable style={styles.overlay} onPress={onClose}>
+        <RippleTouchable style={styles.card}>
           <Text style={styles.title}>{t('picker.time')}</Text>
 
           <View style={styles.pickerContainer}>
@@ -51,7 +51,7 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
               <Text style={styles.columnLabel}>{t('picker.hours')}</Text>
               <ScrollView showsVerticalScrollIndicator={false} style={styles.scroll}>
                 {hours.map((h) => (
-                  <TouchableOpacity
+                  <RippleTouchable
                     key={h}
                     style={[styles.timeItem, selectedHour === h && styles.selectedItem]}
                     onPress={() => setSelectedHour(h)}
@@ -59,7 +59,7 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
                     <Text style={[styles.timeText, selectedHour === h && styles.selectedTimeText]}>
                       {h.toString().padStart(2, '0')}
                     </Text>
-                  </TouchableOpacity>
+                  </RippleTouchable>
                 ))}
               </ScrollView>
             </View>
@@ -71,7 +71,7 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
               <Text style={styles.columnLabel}>{t('picker.minutes')}</Text>
               <ScrollView showsVerticalScrollIndicator={false} style={styles.scroll}>
                 {minutes.map((m) => (
-                  <TouchableOpacity
+                  <RippleTouchable
                     key={m}
                     style={[styles.timeItem, selectedMinute === m && styles.selectedItem]}
                     onPress={() => setSelectedMinute(m)}
@@ -79,22 +79,22 @@ export const TimePickerModal: React.FC<TimePickerModalProps> = ({
                     <Text style={[styles.timeText, selectedMinute === m && styles.selectedTimeText]}>
                       {m.toString().padStart(2, '0')}
                     </Text>
-                  </TouchableOpacity>
+                  </RippleTouchable>
                 ))}
               </ScrollView>
             </View>
           </View>
 
           <View style={styles.actions}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
+            <RippleTouchable style={styles.cancelBtn} onPress={onClose}>
               <Text style={styles.cancelBtnText}>{t('picker.cancel') ?? t('picker.close')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirm}>
+            </RippleTouchable>
+            <RippleTouchable style={styles.confirmBtn} onPress={handleConfirm}>
               <Text style={styles.confirmBtnText}>{t('picker.confirm')}</Text>
-            </TouchableOpacity>
+            </RippleTouchable>
           </View>
-        </TouchableOpacity>
-      </TouchableOpacity>
+        </RippleTouchable>
+      </RippleTouchable>
     </Modal>
   );
 };
@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: 'center',
+    ...CardElevation,
   },
   title: {
     color: Colors.textPrimary,

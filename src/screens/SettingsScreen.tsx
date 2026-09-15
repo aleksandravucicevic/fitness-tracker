@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, Switch, ScrollView, useWindowDimensions } from 'react-native';
+import { RippleTouchable } from '../components/RippleTouchable';
 import { Language, SettingsService, UnitSystem } from '../services/settingsService';
-import { Colors } from '../utils/theme';
+import { Colors, SubtleElevation } from '../utils/theme';
 import {
   scheduleDailyReminder,
   sendInstantNotification,
@@ -62,7 +63,7 @@ export const SettingsScreen = () => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 30 }}>
+    <ScrollView style={[styles.container, isLandscape && {paddingHorizontal: 35}]} contentContainerStyle={{ paddingBottom: 30 }}>
       <View style={isLandscape ? styles.landscapeRow : undefined}>
         <View style={isLandscape ? styles.landscapeColumn : undefined}>
           {/* JEZIK */}
@@ -70,7 +71,7 @@ export const SettingsScreen = () => {
             {t('language')}
           </Text>
           <View style={[styles.card, isLandscape && styles.landscapeCardContainer]}>
-            <TouchableOpacity
+            <RippleTouchable
               style={[
                 styles.row,
                 isLandscape ? styles.landscapeOptionTile : styles.rowItemPadding,
@@ -80,11 +81,11 @@ export const SettingsScreen = () => {
             >
               <Text style={styles.rowText}>Srpski</Text>
               {i18n.language === 'sr' && <Text style={styles.checkmark}>✓</Text>}
-            </TouchableOpacity>
+            </RippleTouchable>
 
             <View style={isLandscape ? styles.verticalDivider : styles.divider} />
 
-            <TouchableOpacity
+            <RippleTouchable
               style={[
                 styles.row,
                 isLandscape ? styles.landscapeOptionTile : styles.rowItemPadding,
@@ -94,7 +95,7 @@ export const SettingsScreen = () => {
             >
               <Text style={styles.rowText}>English</Text>
               {i18n.language === 'en' && <Text style={styles.checkmark}>✓</Text>}
-            </TouchableOpacity>
+            </RippleTouchable>
           </View>
 
           {/* MJERNA JEDINICA */}
@@ -102,7 +103,7 @@ export const SettingsScreen = () => {
             {t('units')}
           </Text>
           <View style={[styles.card, isLandscape && styles.landscapeCardContainer]}>
-            <TouchableOpacity
+            <RippleTouchable
               style={[
                 styles.row,
                 isLandscape ? styles.landscapeOptionTile : styles.rowItemPadding,
@@ -112,11 +113,11 @@ export const SettingsScreen = () => {
             >
               <Text style={styles.rowText}>{t('kilometers')}</Text>
               {unitSystem === 'metric' && <Text style={styles.checkmark}>✓</Text>}
-            </TouchableOpacity>
+            </RippleTouchable>
 
             <View style={isLandscape ? styles.verticalDivider : styles.divider} />
 
-            <TouchableOpacity
+            <RippleTouchable
               style={[
                 styles.row,
                 isLandscape ? styles.landscapeOptionTile : styles.rowItemPadding,
@@ -126,7 +127,7 @@ export const SettingsScreen = () => {
             >
               <Text style={styles.rowText}>{t('miles')}</Text>
               {unitSystem === 'imperial' && <Text style={styles.checkmark}>✓</Text>}
-            </TouchableOpacity>
+            </RippleTouchable>
           </View>
         </View>
 
@@ -156,7 +157,7 @@ export const SettingsScreen = () => {
                     {TIME_OPTIONS.map((item) => {
                       const isSelected = selectedTime.hour === item.hour && selectedTime.minute === item.minute;
                       return (
-                        <TouchableOpacity
+                        <RippleTouchable
                           key={item.label}
                           style={[
                             styles.timeChip,
@@ -168,7 +169,7 @@ export const SettingsScreen = () => {
                           <Text style={[styles.timeText, isSelected && styles.selectedTimeText]}>
                             {item.label}
                           </Text>
-                        </TouchableOpacity>
+                        </RippleTouchable>
                       );
                     })}
                   </View>
@@ -176,11 +177,11 @@ export const SettingsScreen = () => {
 
                 <View style={styles.divider} />
 
-                <TouchableOpacity style={[styles.row, isLandscape && styles.rowItemPadding]} onPress={sendInstantNotification}>
+                <RippleTouchable style={[styles.row, isLandscape && styles.rowItemPadding]} onPress={sendInstantNotification}>
                   <Text style={[styles.rowText, { color: Colors.primary, fontWeight: 'bold' }]}>
                     {t('sendTestNotification')}
                   </Text>
-                </TouchableOpacity>
+                </RippleTouchable>
               </>
             )}
           </View>
@@ -225,6 +226,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     overflow: 'hidden',
+    ...SubtleElevation,
   },
   row: {
     flexDirection: 'row',

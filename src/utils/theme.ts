@@ -27,3 +27,19 @@ export const LightTheme = {
 };
 
 export const Colors = DarkTheme;
+
+export const CardElevation = {
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.3,
+  shadowRadius: 4,
+  elevation: 4,
+};
+
+export const SubtleElevation = {
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.2,
+  shadowRadius: 2,
+  elevation: 2,
+};

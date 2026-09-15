@@ -1,11 +1,12 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
+import { RippleTouchable } from '../components/RippleTouchable';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { getActivityTypeName } from '../utils/activityUtils';
-import { Colors } from '../utils/theme';
+import { Colors, CardElevation, SubtleElevation } from '../utils/theme';
 import { getAllActivities } from '../db/activityRepository';
 import { Activity } from '../models/Activity';
 import { formatDistance, formatTime, getUnitSystem } from '../utils/unitFormatter';
@@ -18,6 +19,9 @@ export const HomeScreen = () => {
   const [totalDistanceMeters, setTotalDistanceMeters] = useState(0);
   const [totalDuration, setTotalDuration] = useState(0);
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+
+  const { width, height } = useWindowDimensions();
+    const isLandscape = width > height;
   
   useFocusEffect(
     useCallback(() => {
@@ -44,20 +48,20 @@ export const HomeScreen = () => {
   );
 
   return (
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScrollView style={[styles.container, isLandscape && {paddingHorizontal: 18}]} contentContainerStyle={styles.content}>
         {/* DUGME KOJE OTVARA TRACKING EKRAN */}
         <View style={styles.headerCard}>
           <Text style={styles.greeting}>{t('home.readyForWorkout')}</Text>
 
-          <TouchableOpacity style={styles.startButton} activeOpacity={0.8} onPress={() => navigation.navigate('Tracking')}>
+          <RippleTouchable style={styles.startButton} onPress={() => navigation.navigate('Tracking')}>
             <Ionicons name='play-circle' size={28} color='#000' />
             <Text style={styles.startButtonText}>{t('home.startNewWorkout')}</Text>
-          </TouchableOpacity>
+          </RippleTouchable>
 
-          <TouchableOpacity style={styles.manualButton} activeOpacity={0.8} onPress={() => navigation.navigate('ManualActivity')}>
+          <RippleTouchable style={styles.manualButton} onPress={() => navigation.navigate('ManualActivity')}>
             <Ionicons name='create-outline' size={20} color={Colors.primary} />
             <Text style={styles.manualButtonText}>{t('home.enterManually')}</Text>
-          </TouchableOpacity>
+          </RippleTouchable>
         </View>
 
         {/* REZIME AKTIVNOSTI */}
@@ -117,11 +121,12 @@ const styles = StyleSheet.create({
   headerCard: {
     backgroundColor: Colors.cardBackground,
     paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingVertical: 12,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: Colors.border,
     marginBottom: 15,
+    ...CardElevation,
   },
   greeting: {
     fontSize: 18,
@@ -133,7 +138,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderRadius: 30,
     marginTop: 12,
     gap: 8,
@@ -179,6 +184,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: 'flex-start',
+    ...SubtleElevation,
   },
   statValue: {
     fontSize: 20,

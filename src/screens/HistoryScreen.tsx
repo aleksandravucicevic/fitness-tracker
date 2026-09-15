@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Alert,
   ScrollView,
   useWindowDimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -29,6 +30,9 @@ export const HistoryScreen = () => {
   const [selectedType, setSelectedType] = useState<string>('ALL');
   const [selectedDuration, setSelectedDuration] = useState<'ALL' | 'SHORT' | 'MEDIUM' | 'LONG'>('ALL');
   const navigation = useNavigation<any>();
+
+  const PAGE_SIZE = 10;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
@@ -95,6 +99,18 @@ export const HistoryScreen = () => {
                           rawDate.includes(query);
     return matchesType && matchesDuration && matchesSearch;
   });
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchQuery, selectedType, selectedDuration]);
+
+  const pagedActivities = filteredActivities.slice(0, visibleCount);
+  const hasMoreToLoad = visibleCount < filteredActivities.length;
+
+  const handleLoadMore = () => {
+    if(hasMoreToLoad)
+      setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filteredActivities.length));
+  };
 
   return (
     <View style={[styles.container, isLandscape && { padding: 18 }]}>
@@ -177,8 +193,16 @@ export const HistoryScreen = () => {
         <FlatList key={isLandscape ? 'landscape-list' : 'portrait-list'}
           numColumns={isLandscape ? 2 : 1}
           columnWrapperStyle={isLandscape ? { justifyContent: 'space-between' } : undefined}
-          data={filteredActivities} keyExtractor={(item) => item.id!.toString()} 
+          data={pagedActivities} keyExtractor={(item) => item.id!.toString()} 
           showsVerticalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={hasMoreToLoad ? (
+            <View style={styles.loadMoreFooter}>
+              <ActivityIndicator size="small" color={Colors.primary} />
+              <Text style={styles.loadMoreText}>{t('history.loadingMore')}</Text>
+            </View>
+          ) : null}
           renderItem={({ item }) => (
           <TouchableOpacity style={[styles.card, isLandscape && { width: '49%' }]} activeOpacity={0.8} onPress={() => navigation.navigate('ActivityDetail', { activity: item })}>
             <View style={styles.cardHeader}>
@@ -231,7 +255,13 @@ export const HistoryScreen = () => {
           </View>
 
           {/* TIJELO TABELE*/}
-          <FlatList data={filteredActivities} keyExtractor={(item) => item.id!.toString()}
+          <FlatList data={pagedActivities} keyExtractor={(item) => item.id!.toString()}
+            onEndReached={handleLoadMore} onEndReachedThreshold={0.5} ListFooterComponent={hasMoreToLoad ? (
+              <View style={styles.loadMoreFooter}>
+                <ActivityIndicator size='small' color={Colors.primary} />
+                <Text style={styles.loadMoreText}>{t('history.loadingMore')}</Text>
+              </View>
+            ) : null}
             renderItem={({item, index}) => (
             <View style={[styles.tableRow, index % 2 === 1 && {backgroundColor: Colors.cardBackground},]}>
               <TouchableOpacity style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }} activeOpacity={0.7} 
@@ -398,4 +428,12 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   td: { color: Colors.textPrimary, fontSize: 13 },
+  loadMoreFooter: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  loadMoreText: { color: Colors.textSecondary, fontSize: 13 },
 });

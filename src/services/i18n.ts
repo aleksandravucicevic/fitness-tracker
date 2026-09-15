@@ -71,6 +71,7 @@ const resources = {
           speed: 'Brzina',
           action: 'Akcija',
         },
+        loadingMore: 'Učitavanje...'
       },
       activityDetail: {
         noGpsRoute: 'Ova aktivnost nema sačuvanu GPS rutu.',
@@ -245,6 +246,7 @@ const resources = {
           speed: 'Speed',
           action: 'Action',
         },
+        loadingMore: 'Loading...'
       },
       activityDetail: {
         noGpsRoute: 'This activity has no saved GPS route.',

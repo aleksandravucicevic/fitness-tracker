@@ -29,11 +29,12 @@ export const StatsScreen = () => {
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
   const [stats, setStats] = useState<ActivityStats>({ totalDistance: 0, totalDuration: 0, totalCount: 0, avgSpeed: 0, totalSteps: 0 });
 
-  const [chartData, setChartData] = useState<{labels: string[]; data: number[]; unit: string; periodLabelKey: string; }>({
+  const [chartData, setChartData] = useState<{labels: string[]; data: number[]; unit: string; periodLabelKey: string; forPeriodKey: string; }>({
     labels: ['-'],
     data: [0],
     unit: 'km',
     periodLabelKey: 'stats.periodDay',
+    forPeriodKey: 'stats.forPeriod.7days',
   });
 
   const loadData = async () => {
@@ -90,9 +91,14 @@ export const StatsScreen = () => {
         data.push(toChartUnit(totalMetersForDay));
       }
 
-      setChartData({labels, data, unit: unitLabel,periodLabelKey: 'stats.periodDay'});
+      setChartData({labels, data, unit: unitLabel, periodLabelKey: 'stats.periodDay', forPeriodKey: 'stats.forPeriod.days7'});
     } else if (days === 30){
-      const labels = ['P1', 'P2', 'P3', 'P4'];
+      const labels = [
+        t('stats.weeks.weeksAgo4'),
+        t('stats.weeks.weeksAgo3'),
+        t('stats.weeks.previous'),
+        t('stats.weeks.current'),
+      ];
       const now = new Date();
 
       const p1 = filtered.filter((a) => (now.getTime() - new Date(a.date).getTime()) / (1000 * 3600 * 24) <= 7);
@@ -115,15 +121,20 @@ export const StatsScreen = () => {
       const m4 = p4.reduce((s, a) => s + a.distance, 0);
 
       const data = [
-        toChartUnit(m1),
-        toChartUnit(m2),
-        toChartUnit(m3),
         toChartUnit(m4),
+        toChartUnit(m3),
+        toChartUnit(m2),
+        toChartUnit(m1),
       ];
 
-      setChartData({labels, data, unit: unitLabel, periodLabelKey: 'stats.periodQuarter'});
+      setChartData({labels, data, unit: unitLabel, periodLabelKey: 'stats.periodWeeks', forPeriodKey: 'stats.forPeriod.days30'});
     } else {
-      const labels = ['P1', 'P2', 'P3', 'P4'];
+      const labels = [
+        t('stats.quarters.q4'),
+        t('stats.quarters.q3'),
+        t('stats.quarters.q2'),
+        t('stats.quarters.q1'),
+      ];
       const now = new Date();
 
       const p1 = filtered.filter((a) => (now.getTime() - new Date(a.date).getTime()) / (1000 * 3600 * 24) <= 91);
@@ -146,18 +157,18 @@ export const StatsScreen = () => {
       const m4 = p4.reduce((s, a) => s + a.distance, 0);
 
       const data = [
-        toChartUnit(m1),
-        toChartUnit(m2),
-        toChartUnit(m3),
         toChartUnit(m4),
+        toChartUnit(m3),
+        toChartUnit(m2),
+        toChartUnit(m1),
       ];
 
-      setChartData({labels, data, unit: unitLabel, periodLabelKey: 'stats.periodQuarter'});
+      setChartData({labels, data, unit: unitLabel, periodLabelKey: 'stats.periodMonths', forPeriodKey: 'stats.forPeriod.year'});
     }
   };
 
   const computedChartWidth = Math.max(width - 64, 280);
-  const computedHeight = isLandscape ? 160 : 220;
+  const computedHeight = isLandscape ? 170 : 220;
 
   return (
     <ScrollView style={[styles.container, isLandscape && {paddingHorizontal: 32}]} contentContainerStyle={{ paddingBottom: 30 }}>
@@ -221,8 +232,8 @@ export const StatsScreen = () => {
       </View>
 
       {/* GRAFIKON AKTIVNOSTI */}
-      <View style={[styles.chartCard, isLandscape && {paddingTop: 11, paddingBottom: 13}]}>
-        <Text style={styles.chartTitle}>{t('stats.chartTitle', {period: t(chartData.periodLabelKey), unit: chartData.unit})}</Text>
+      <View style={[styles.chartCard, isLandscape && {paddingTop: 11, paddingBottom: 15}]}>
+        <Text style={styles.chartTitle}>{t('stats.chartTitle', {period: t(chartData.periodLabelKey), unit: chartData.unit, forPeriod:t(chartData.forPeriodKey)})}</Text>
         <BarChart data={{labels: chartData.labels, datasets: [{ data: chartData.data.length > 0 ? chartData.data : [0] }],}}
                   width={computedChartWidth}
                   height={computedHeight}
@@ -309,5 +320,5 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginBottom: 12,
   },
-  chart: { borderRadius: 12, marginTop: 8 },
+  chart: { borderRadius: 12, marginTop: 4 },
 });

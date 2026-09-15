@@ -87,12 +87,18 @@ const resources = {
         days30: '30 dana',
         year1: '1 godina',
         periodDay: 'danima',
-        periodQuarter: 'četvrtinama perioda',
+        periodWeeks: 'sedmicama',
+        periodMonths: 'mjesecima',
         totalDistance: 'Ukupna distanca',
         totalTime: 'Ukupno vrijeme',
         activityCount: 'Broj aktivnosti',
         avgSpeed: 'Prosječna brzina',
-        chartTitle: 'Distanca po {{period}} ({{unit}})',
+        chartTitle: 'Distanca ({{unit}}) po {{period}} za {{forPeriod}}',
+        forPeriod: {
+          days7: "posljednjih 7 dana",
+          days30: "posljednjih 30 dana",
+          year: "posljednjih 365 dana",
+        },
         daysOfWeek: {
           sun: 'Ned',
           mon: 'Pon',
@@ -102,6 +108,18 @@ const resources = {
           fri: 'Pet',
           sat: 'Sub',
         },
+        weeks: {
+          current: "Ova sed",
+          previous: "Prethodna",
+          weeksAgo3: "Prije 3",
+          weeksAgo4: "Prije 4"
+        },
+        quarters: {
+          q1: "Poslj. 3 mj.",
+          q2: "3-6",
+          q3: "6-9",
+          q4: "9-12"
+        }
       },
       activities: {
         all: 'Sve',
@@ -262,12 +280,18 @@ const resources = {
         days30: '30 days',
         year1: '1 year',
         periodDay: 'day',
-        periodQuarter: 'quarter of period',
+        periodWeeks: 'weeks',
+        periodMonths: 'months',
         totalDistance: 'Total Distance',
         totalTime: 'Total Time',
         activityCount: 'Activity Count',
         avgSpeed: 'Average Speed',
-        chartTitle: 'Distance by {{period}} ({{unit}})',
+        chartTitle: 'Distance ({{unit}}) by {{period}} for the {{forPeriod}}',
+        forPeriod: {
+          days7: "last 7 days",
+          days30: "last 30 days",
+          year: "last 365 days",
+        },
         daysOfWeek: {
           sun: 'Sun',
           mon: 'Mon',
@@ -277,6 +301,18 @@ const resources = {
           fri: 'Fri',
           sat: 'Sat',
         },
+        weeks: {
+          current: "This wk",
+          previous: "Last wk",
+          weeksAgo3: "3 wks ago",
+          weeksAgo4: "4 wks ago"
+        },
+        quarters: {
+          q1: "Last 3 mo",
+          q2: "3-6",
+          q3: "6-9",
+          q4: "9-12"
+        }
       },
       activities: {
         all: 'All',

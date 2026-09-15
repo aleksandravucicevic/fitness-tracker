@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import * as Location from 'expo-location';
+import { Pedometer } from 'expo-sensors';
 import { LocationPoint, ActivityType } from '../models/Activity';
 import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -35,8 +36,11 @@ export const useTracker = () => {
     const [currentSpeed, setCurrentSpeed] = useState(0);
     const [route, setRoute] = useState<LocationPoint[]>([]);
     const [currentLocation, setCurrentLocation] = useState<LocationPoint | null>(null);
+    const [steps, setSteps] = useState(0);
+    const [isPedometerAvailable, setIsPedometerAvailable] = useState(false);
 
     const locationSubscription = useRef<Location.LocationSubscription | null>(null);
+    const pedometerSubscription = useRef<{ remove: () => void } | null>(null);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
@@ -93,6 +97,28 @@ export const useTracker = () => {
         setRoute([]);
         setIsTracking(true);
         setIsPaused(false);
+
+        // ako je pedometar dostupan na uređaju i korisnik da dozvolu da se koristi
+        // koristiće se tokom treninga
+        try {
+            const available = await Pedometer.isAvailableAsync();
+            setIsPedometerAvailable(available);
+
+            if(available) {
+                try {
+                    await Pedometer.requestPermissionsAsync();
+                } catch(permError) {
+                    console.warn('Dozvola za pedometar nije tražena! Postoji mogućnost da nije podržano na uređaju... ', permError);
+                }
+
+                pedometerSubscription.current = Pedometer.watchStepCount((result) => {
+                    setSteps(result.steps);
+                });
+            }
+        } catch(error) {
+            console.warn('Pedometar nije dostupan na uređaju: ', error);
+            setIsPedometerAvailable(false);
+        }
 
         try {
             const initial = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.High});
@@ -169,6 +195,11 @@ export const useTracker = () => {
             locationSubscription.current = null;
         }
 
+        if(pedometerSubscription.current) {
+            pedometerSubscription.current.remove();
+            pedometerSubscription.current = null;
+        }
+
         if(timerRef.current)
             clearInterval(timerRef.current);
         
@@ -188,6 +219,8 @@ export const useTracker = () => {
         route,
         currentLocation,
         hasLocationPermission,
+        steps,
+        isPedometerAvailable,
         startTracking,
         pauseTracking,
         resumeTracking,

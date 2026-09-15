@@ -63,8 +63,13 @@ export const GoalsScreen = () => {
       const walkingDistance = byType['WALKING']?.totalDistance ?? 0;
       const runningDistance = byType['RUNNING']?.totalDistance ?? 0;
 
-      const walkSteps = estimateSteps('WALKING', walkingDistance) ?? 0;
-      const runSteps = estimateSteps('RUNNING', runningDistance) ?? 0;
+      // ako postoji bar jedan zapis sa pedometra - koristimo to što je zabilježio pedometar
+      // u suprotnom koristimo procjenu koraka na osnovu pređene distance
+      const realWalkSteps = byType['WALKING']?.totalSteps ?? 0;
+      const realRunSteps = byType['RUNNING']?.totalSteps ?? 0;
+
+      const walkSteps = realWalkSteps > 0 ? realWalkSteps : (estimateSteps('WALKING', walkingDistance) ?? 0);
+      const runSteps = realRunSteps > 0 ? realRunSteps : (estimateSteps('RUNNING', runningDistance) ?? 0);
 
       setCurrentSteps(walkSteps + runSteps);
     } catch (error) {

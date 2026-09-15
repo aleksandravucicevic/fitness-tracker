@@ -30,6 +30,8 @@ export const TrackingScreen = () => {
     route,
     currentLocation,
     hasLocationPermission,
+    steps,
+    isPedometerAvailable,
     startTracking,
     pauseTracking,
     resumeTracking,
@@ -98,6 +100,7 @@ export const TrackingScreen = () => {
         routeJson: JSON.stringify(route),
         averageSpeed: parseFloat(avgSpeed.toFixed(2)),
         description: description.trim() || undefined,
+        steps: isPedometerAvailable ? steps : undefined,
       });
 
       setDescription('');
@@ -162,6 +165,12 @@ export const TrackingScreen = () => {
               <Text style={styles.statLabel}>{t('tracking.speed')}</Text>
               <Text style={styles.statValue}>{formatSpeed(currentSpeed, unitSystem)}</Text>
             </View>
+            {isPedometerAvailable && (
+              <View style={styles.statBox}>
+                <Text style={styles.statLabel}>{t('tracking.steps')}</Text>
+                <Text style={styles.statValue}>{steps}</Text>
+              </View>
+            )}
           </View>
 
           {/* DUGMAD */}

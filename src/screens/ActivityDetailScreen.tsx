@@ -109,6 +109,14 @@ export const ActivityDetailScreen = ({ route } : any) => {
                             <Text style={styles.metricLabel}>{t('activityDetail.avgSpeed')}</Text>
                         </View>
 
+                        {typeof activity.steps === 'number' && activity.steps > 0 && (
+                            <View style={styles.metricCard}>
+                                <Ionicons name='footsteps-outline' size={22} color={Colors.primary} />
+                                <Text style={styles.metricValue}>{activity.steps}</Text>
+                                <Text style={styles.metricLabel}>{t('activityDetail.steps')}</Text>
+                            </View>
+                        )}
+
                         <View style={styles.metricCard}>
                             <Ionicons name='flame-outline' size={22} color={Colors.primary} />
                             <Text style={styles.metricValue}>

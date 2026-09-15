@@ -4,8 +4,8 @@ import { Activity } from "../models/Activity";
 export const saveActivity = async (activity: Activity): Promise<number> => {
     const db = await getDbConnection();
     const result = await db.runAsync(
-        `INSERT INTO activities (type, duration, distance, date, description, routeJson, averageSpeed)
-        VALUES (?, ?, ?, ?, ?, ?, ?);`,
+        `INSERT INTO activities (type, duration, distance, date, description, routeJson, averageSpeed, steps)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
         [
             activity.type,
             activity.duration,
@@ -13,7 +13,8 @@ export const saveActivity = async (activity: Activity): Promise<number> => {
             activity.date,
             activity.description || '',
             activity.routeJson || '[]',
-            activity.averageSpeed
+            activity.averageSpeed,
+            activity.steps ?? null
         ]
     );
     return result.lastInsertRowId;
@@ -42,7 +43,8 @@ export interface ActivityStats {
     totalDistance: number,
     totalDuration: number,
     totalCount: number,
-    avgSpeed: number;
+    avgSpeed: number,
+    totalSteps: number;
 }
 
 export interface ActivityStatsBreakdown {
@@ -63,7 +65,8 @@ export const getActivityStats = async (type: string = 'ALL', periodDays: number 
     let query = `SELECT COALESCE(SUM(distance), 0) AS totalDistance,
         COALESCE(SUM(duration), 0) AS totalDuration,
         COUNT(id) AS totalCount,
-        COALESCE(AVG(averageSpeed), 0) AS avgSpeed
+        COALESCE(AVG(averageSpeed), 0) AS avgSpeed,
+        COALESCE(SUM(steps), 0) AS totalSteps 
         FROM activities WHERE date >= ?`;
     
     const params: any[] = [isoDate];
@@ -81,6 +84,7 @@ export const getActivityStats = async (type: string = 'ALL', periodDays: number 
             totalDuration: 0,
             totalCount: 0,
             avgSpeed: 0,
+            totalSteps: 0,
         }
     );
 };
@@ -100,7 +104,8 @@ export const getActivityStatsBreakdown = async (periodDays: number = 30): Promis
             COALESCE(SUM(distance), 0) AS totalDistance,
             COALESCE(SUM(duration), 0) AS totalDuration,
             COUNT(id) AS totalCount,
-            COALESCE(AVG(averageSpeed), 0) AS avgSpeed
+            COALESCE(AVG(averageSpeed), 0) AS avgSpeed, 
+            COALESCE(SUM(steps), 0) AS totalSteps
         FROM activities
         WHERE date >= ?
         GROUP BY type;`,
@@ -108,7 +113,7 @@ export const getActivityStatsBreakdown = async (periodDays: number = 30): Promis
     );
 
     const byType: Record<string, ActivityStats> = {};
-    const overall: ActivityStats = { totalDistance: 0, totalDuration: 0, totalCount: 0, avgSpeed: 0 };
+    const overall: ActivityStats = { totalDistance: 0, totalDuration: 0, totalCount: 0, avgSpeed: 0, totalSteps: 0 };
 
     let weightedSpeedSum = 0;
 
@@ -119,6 +124,7 @@ export const getActivityStatsBreakdown = async (periodDays: number = 30): Promis
         overall.totalDistance += stats.totalDistance;
         overall.totalDuration += stats.totalDuration;
         overall.totalCount += stats.totalCount;
+        overall.totalSteps += stats.totalSteps;
         weightedSpeedSum += stats.avgSpeed * stats.totalCount;
     }
 

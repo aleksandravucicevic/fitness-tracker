@@ -17,6 +17,7 @@ export interface Activity {
     description?: string;
     routeJson?: string;
     averageSpeed: number;
+    steps?: number;
 }
 
 export interface Goal {

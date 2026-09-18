@@ -56,5 +56,6 @@ npx expo start
 ```
 
 ## Zahtijevane dozvole
-* Location Permission (ACCESS_FINE_LOCATION): Za precizno praćenje rute u realnom vremenu.
-* Network Provider Services: Za automatsko uključivanje GPS senzora na telefonu.
+* **Activity Recognition Permission (`ACTIVITY_RECOGNITION`)**: Za pristup senzoru pedometra i praćenje koraka korisnika.
+* **Location Permission (`ACCESS_FINE_LOCATION`)**: Za precizno praćenje rute u realnom vremenu.
+* **Network Provider Services**: Za automatsko uključivanje GPS senzora na telefonu.

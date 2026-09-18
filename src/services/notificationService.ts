@@ -65,7 +65,7 @@ export const scheduleDailyReminder = async (lastActivityDate?: Date | null) => {
 
     const daysSinceLastActivity = lastActivityDate ? daysBetween(new Date(lastActivityDate), today) : null;
     const hasTrainedToday = daysSinceLastActivity === 0;
-    const isLongInactive = daysSinceLastActivity != null && daysSinceLastActivity <= INACTIVITY_THRESHOLD_DAYS;
+    const isLongInactive = daysSinceLastActivity != null && daysSinceLastActivity >= INACTIVITY_THRESHOLD_DAYS;
 
     // podsjetnik u slučaju da korisnik nije bio aktivan duži vremenski period
     if(isLongInactive) {
